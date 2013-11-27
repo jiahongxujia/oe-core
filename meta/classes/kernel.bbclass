@@ -639,9 +639,15 @@ kernel_do_deploy() {
 		install -m 0644 ${KERNEL_OUTPUT_DIR}/${type} ${DEPLOYDIR}/${base_name}.bin
 	done
 	if [ ${MODULE_TARBALL_DEPLOY} = "1" ] && (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
+		# Generate modules.* files in order to adding the modules.* into kernel module tar ball
+		# after making the tar ball, remove the modules.* files to avoid unnecessary QA warnings.
 		mkdir -p ${D}/lib
-		tar -cvzf ${DEPLOYDIR}/${MODULE_TARBALL_BASE_NAME} -C ${D} lib
+		cp -r ${D}/lib ${DEPLOYDIR}
+		(cd ${D}; cp --parent boot/System.map-${KERNEL_VERSION} ${DEPLOYDIR})
+		depmodwrapper -a -b ${DEPLOYDIR} ${KERNEL_VERSION}
+		tar -cvzf ${DEPLOYDIR}/${MODULE_TARBALL_BASE_NAME} -C ${DEPLOYDIR} lib boot/System.map-${KERNEL_VERSION}
 		ln -sf ${MODULE_TARBALL_BASE_NAME} ${DEPLOYDIR}/${MODULE_TARBALL_SYMLINK_NAME}
+		rm -rf ${DEPLOYDIR}/lib ${DEPLOYDIR}/boot
 	fi
 
 	for type in ${KERNEL_IMAGETYPES} ; do
