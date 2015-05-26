@@ -25,6 +25,8 @@ PACKAGECONFIG = "python update-alternatives"
 PACKAGECONFIG[python] = ",,,${PYTHONRDEPS}"
 PACKAGECONFIG[update-alternatives] = ",,,"
 
+OPKGLIBDIR ?= "/var/lib"
+
 do_install() {
 	oe_runmake PREFIX=${prefix} DESTDIR=${D} install
 	if ! ${@bb.utils.contains('PACKAGECONFIG', 'update-alternatives', 'true', 'false', d)}; then
@@ -34,6 +36,7 @@ do_install() {
     if ! ${@bb.utils.contains('PACKAGECONFIG', 'python', 'true', 'false', d)}; then
         grep -lZ "/usr/bin/env.*python" ${D}${bindir}/* | xargs -0 rm
     fi
+	sed -i s:/usr/lib/opkg:${OPKGLIBDIR}/opkg: ${D}${bindir}/update-alternatives
 }
 
 do_install_append_class-target() {
