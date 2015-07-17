@@ -1,0 +1,89 @@
+[PATCH] dhcp: add exec script function
+
+Make dhclient to run /etc/dhcp/dhclient.d/*.sh, and get the configuration
+for ntp, nis or other programes
+
+These codes are from redhat rpm packages.
+
+Upstream-Status: Backport [redhat]
+
+Signed-off-by: Li Wang <li.wang@windriver.com>
+Signed-off-by: Roy Li <rongqing.li@windriver.com>
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ client/scripts/linux | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/client/scripts/linux b/client/scripts/linux
+index 5fb1612..de15a70 100755
+--- a/client/scripts/linux
++++ b/client/scripts/linux
+@@ -31,6 +31,8 @@
+ # overwirte this line to use a fake ip-echo tool. It's also convenient
+ # if your system holds ip tool in a non-standard location.
+ ip=/sbin/ip
++ETCDIR="/etc/dhcp"
++export SAVEDIR=/var/lib/dhcp
+ 
+ # update /etc/resolv.conf based on received values
+ # This updated version mostly follows Debian script by Andrew Pollock et al.
+@@ -177,6 +179,19 @@ exit_with_hooks() {
+     exit $exit_status
+ }
+ 
++execute_client_side_configuration_scripts() {
++# execute any additional client side configuration scripts we have
++    if [ "${1}" == "config" ] || [ "${1}" == "restore" ]; then
++        for f in ${ETCDIR}/dhclient.d/*.sh ; do
++            if [ -x "${f}" ]; then
++                subsystem="${f%.sh}"
++                subsystem="${subsystem##*/}"
++                . "${f}"
++                "${subsystem}_${1}"
++            fi
++        done
++    fi
++}
+ 
+ # Invoke the local dhcp client enter hooks, if they exist.
+ run_hook /etc/dhclient-enter-hooks
+@@ -271,10 +286,12 @@ case "$reason" in
+ 
+         # update /etc/resolv.conf
+         make_resolv_conf
++        execute_client_side_configuration_scripts "config"
+ 
+         ;;
+ 
+     EXPIRE|FAIL|RELEASE|STOP)
++        execute_client_side_configuration_scripts "restore"
+         if [ -n "$alias_ip_address" ]; then
+             # flush alias IP
+             ${ip} -4 addr flush dev ${interface} label ${interface}:0
+@@ -411,6 +428,7 @@ case "$reason" in
+            [ "${new_dhcp6_domain_search}" != "${old_dhcp6_domain_search}" ]; then
+             make_resolv_conf
+         fi
++        execute_client_side_configuration_scripts "config"
+ 
+         ;;
+ 
+@@ -423,6 +441,7 @@ case "$reason" in
+         ${ip} -6 addr change ${cur_ip6_address}/${cur_ip6_prefixlen} \
+             dev ${interface} scope global preferred_lft 0
+ 
++        execute_client_side_configuration_scripts "config"
+         ;;
+ 
+     EXPIRE6|RELEASE6|STOP6)
+@@ -434,6 +453,7 @@ case "$reason" in
+         ${ip} -6 addr del ${old_ip6_address}/${old_ip6_prefixlen} \
+             dev ${interface}
+ 
++        execute_client_side_configuration_scripts "restore"
+         ;;
+ esac
+ 
+-- 
+2.7.4
+
