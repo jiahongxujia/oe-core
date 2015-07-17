@@ -11,6 +11,7 @@ SRC_URI += "file://0001-define-macro-_PATH_DHCPD_CONF-and-_PATH_DHCLIENT_CON.pat
             file://0009-remove-dhclient-script-bash-dependency.patch \
             file://0010-build-shared-libs.patch \
             file://0011-Moved-the-call-to-isc_app_ctxstart-to-not-get-signal.patch \
+            file://dhcp-add-exec-script-function.patch \
            "
 
 SRC_URI[md5sum] = "afa6e9b3eb7539ea048421a82c668adc"
