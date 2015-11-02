@@ -1,4 +1,4 @@
-From bb78a9571d6a3d0c542ed9d929bf71fd82448968 Mon Sep 17 00:00:00 2001
+From 76f8598fd20727908e760cbb497dd6a17eda4af5 Mon Sep 17 00:00:00 2001
 From: Roy Li <rongqing.li@windriver.com>
 Date: Wed, 17 Sep 2014 13:22:14 +0800
 Subject: [PATCH] add option to make users able to use fixed port number
@@ -8,12 +8,35 @@ Upstream-status: Submitted [https://sourceforge.net/p/rpcbind/discussion/716839/
 Signed-off-by: Li Wang <li.wang@windriver.com>
 Signed-off-by: Roy Li <rongqing.li@windriver.com>
 ---
- src/rpcb_svc_com.c |   17 +++++++++++++++++
- src/rpcbind.c      |    6 +++++-
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ man/rpcbind.8      |  4 +++-
+ src/rpcb_svc_com.c | 17 +++++++++++++++++
+ src/rpcbind.c      |  8 ++++++--
+ 3 files changed, 26 insertions(+), 3 deletions(-)
 
+diff --git a/man/rpcbind.8 b/man/rpcbind.8
+index af6200f..2e6146b 100644
+--- a/man/rpcbind.8
++++ b/man/rpcbind.8
+@@ -11,7 +11,7 @@
+ .Nd universal addresses to RPC program number mapper
+ .Sh SYNOPSIS
+ .Nm
+-.Op Fl adhiLls
++.Op Fl adhpiLls
+ .Sh DESCRIPTION
+ The
+ .Nm
+@@ -107,6 +107,8 @@ will automatically add
+ and if IPv6 is enabled,
+ .Li ::1
+ to the list.
++.It Fl p
++Bind for fixed UDP port number
+ .It Fl i
+ .Dq Insecure
+ mode.
 diff --git a/src/rpcb_svc_com.c b/src/rpcb_svc_com.c
-index f6bd6bd..0bbd6e4 100644
+index 8aef9e5..c2632a4 100644
 --- a/src/rpcb_svc_com.c
 +++ b/src/rpcb_svc_com.c
 @@ -48,6 +48,7 @@
@@ -24,7 +47,7 @@ index f6bd6bd..0bbd6e4 100644
  #include <netconfig.h>
  #include <errno.h>
  #include <syslog.h>
-@@ -496,6 +497,7 @@ xdr_opaque_parms(XDR *xdrs, struct r_rmtcall_args *cap)
+@@ -497,6 +498,7 @@ xdr_opaque_parms(XDR *xdrs, struct r_rmtcall_args *cap)
  
  static struct rmtcallfd_list *rmthead;
  static struct rmtcallfd_list *rmttail;
@@ -32,7 +55,7 @@ index f6bd6bd..0bbd6e4 100644
  
  int
  create_rmtcall_fd(struct netconfig *nconf)
-@@ -503,6 +505,8 @@ create_rmtcall_fd(struct netconfig *nconf)
+@@ -504,6 +506,8 @@ create_rmtcall_fd(struct netconfig *nconf)
  	int fd;
  	struct rmtcallfd_list *rmt;
  	SVCXPRT *xprt;
@@ -41,7 +64,7 @@ index f6bd6bd..0bbd6e4 100644
  
  	if ((fd = __rpc_nconf2fd(nconf)) == -1) {
  		if (debugging)
-@@ -511,6 +515,19 @@ create_rmtcall_fd(struct netconfig *nconf)
+@@ -512,6 +516,19 @@ create_rmtcall_fd(struct netconfig *nconf)
  			nconf->nc_device, errno);
  		return (-1);
  	}
@@ -62,10 +85,10 @@ index f6bd6bd..0bbd6e4 100644
  	if (xprt == NULL) {
  		if (debugging)
 diff --git a/src/rpcbind.c b/src/rpcbind.c
-index 83dbe93..a2caa32 100644
+index 137011b..dc3d2d6 100644
 --- a/src/rpcbind.c
 +++ b/src/rpcbind.c
-@@ -99,6 +99,7 @@ int runasdaemon = 0;
+@@ -111,6 +111,7 @@ int runasdaemon = 0;
  int insecure = 0;
  int oldstyle_local = 0;
  int verboselog = 0;
@@ -73,7 +96,7 @@ index 83dbe93..a2caa32 100644
  
  char **hosts = NULL;
  int nhosts = 0;
-@@ -748,7 +749,7 @@ parseargs(int argc, char *argv[])
+@@ -869,7 +870,7 @@ parseargs(int argc, char *argv[])
  {
  	int c;
  	oldstyle_local = 1;
@@ -82,7 +105,7 @@ index 83dbe93..a2caa32 100644
  		switch (c) {
  		case 'a':
  			doabort = 1;	/* when debugging, do an abort on */
-@@ -766,6 +767,9 @@ parseargs(int argc, char *argv[])
+@@ -887,6 +888,9 @@ parseargs(int argc, char *argv[])
  			if (hosts[nhosts - 1] == NULL)
  				errx(1, "Out of memory");
  			break;
@@ -92,6 +115,15 @@ index 83dbe93..a2caa32 100644
  		case 'i':
  			insecure = 1;
  			break;
+@@ -905,7 +909,7 @@ parseargs(int argc, char *argv[])
+ 			break;
+ #endif
+ 		default:	/* error */
+-			fprintf(stderr,	"usage: rpcbind [-adhilswf]\n");
++			fprintf(stderr,	"usage: rpcbind [-adhpilswf]\n");
+ 			exit (1);
+ 		}
+ 	}
 -- 
-1.7.10.4
+1.9.1
 
