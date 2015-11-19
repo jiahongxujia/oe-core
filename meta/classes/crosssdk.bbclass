@@ -6,6 +6,10 @@ PACKAGE_ARCH = "${SDK_ARCH}"
 python () {
 	# set TUNE_PKGARCH to SDK_ARCH
 	d.setVar('TUNE_PKGARCH', d.getVar('SDK_ARCH'))
+	# We're not running a 'target', so clear these...
+	d.setVar('TUNE_CCARGS', '')
+	d.setVar('TUNE_LDARGS', '')
+	d.setVar('TUNE_ASARGS', '')
 }
 
 STAGING_BINDIR_TOOLCHAIN = "${STAGING_DIR_NATIVE}${bindir_native}/${TARGET_ARCH}${TARGET_VENDOR}-${TARGET_OS}"
