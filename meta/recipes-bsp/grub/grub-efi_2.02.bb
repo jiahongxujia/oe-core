@@ -32,10 +32,6 @@ inherit deploy
 CACHED_CONFIGUREVARS += "ac_cv_path_HELP2MAN="
 EXTRA_OECONF += "--enable-efiemu=no"
 
-# ldm.c:114:7: error: trampoline generated for nested function 'hook' [-Werror=trampolines]
-# and many other places in the grub code when compiled with some native gcc compilers (specifically, gentoo)
-CFLAGS_append_class-native = " -Wno-error=trampolines"
-
 do_install_class-native() {
 	install -d ${D}${bindir}
 	install -m 755 grub-mkimage ${D}${bindir}
