@@ -35,6 +35,9 @@ SRC_URI = "http://hostap.epitest.fi/releases/wpa_supplicant-${PV}.tar.gz \
            file://0001-NFC-Fix-payload-length-validation-in-NDEF-record-par.patch \
            file://0001-WPS-Reject-a-Credential-with-invalid-passphrase.patch \
            file://0002-Remove-newlines-from-wpa_supplicant-config-network-o.patch \
+           file://0001-Reject-psk-parameter-set-with-invalid-passphrase-cha.patch \
+           file://0002-Reject-SET_CRED-commands-with-newline-characters-in-.patch \
+           file://0003-Reject-SET-commands-with-newline-characters-in-the-s.patch \
           "
 SRC_URI[md5sum] = "f0037dbe03897dcaf2ad2722e659095d"
 SRC_URI[sha256sum] = "058dc832c096139a059e6df814080f50251a8d313c21b13364c54a1e70109122"
