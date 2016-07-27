@@ -1,0 +1,51 @@
+From 6f7977d79fd464f8615d68476583f4b1732865b1 Mon Sep 17 00:00:00 2001
+From: Wenlin Kang <wenlin.kang@windriver.com>
+Date: Wed, 27 Jul 2016 05:20:24 +0000
+Subject: [PATCH] tmpfiles.d: don't create the symbol link
+
+Don't create symbol link for existing file
+/etc/os-release and /etc/localtime exist in our
+system, so remove below two lines in /usr/lib/tmpfiles.d/etc.conf
+L /etc/os-release - - - - ../usr/lib/os-release
+L /etc/localtime - - - - ../usr/share/zoneinfo/UTC
+
+* The os-release is shipped by base-files in other distributions.
+  Recently, the base-files changed the os-release directory from
+  /etc/os-release to /usr/lib/os-release, which causes systemd boot
+  up failed, so a fix was added into systemd is
+
+  ln -s /usr/lib/os-release /etc/os-release
+
+  However, the os-release file shipped by os-release in Yocto project.
+  The location is still /etc/os-release, so systemd doesn't need
+  to create the symbol link.
+
+* /etc/localtime file shipped by tzdata-2016e in Yocto project, so
+  no need to create symbol link as:
+  ln -s /usr/share/zoneinfo/UTC /etc/localtime
+
+Upstream-Status: Inappropriate [Yocto specific]
+
+Signed-off-by: Yue Tao <yue.tao@windriver.com>
+Signed-off-by: Wenlin Kang <wenlin.kang@windriver.com>
+Signed-off-by: Mingli Yu <mingli.yu@windriver.com>
+---
+ tmpfiles.d/etc.conf.m4 | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/tmpfiles.d/etc.conf.m4 b/tmpfiles.d/etc.conf.m4
+index ef7b9b9..5691a07 100644
+--- a/tmpfiles.d/etc.conf.m4
++++ b/tmpfiles.d/etc.conf.m4
+@@ -7,8 +7,6 @@
+ 
+ # See tmpfiles.d(5) for details
+ 
+-L /etc/os-release - - - - ../usr/lib/os-release
+-L /etc/localtime - - - - ../usr/share/zoneinfo/UTC
+ L+ /etc/mtab - - - - ../proc/self/mounts
+ m4_ifdef(`HAVE_SMACK_RUN_LABEL',
+ t /etc/mtab - - - - security.SMACK64=_
+-- 
+2.8.2
+
