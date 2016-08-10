@@ -149,6 +149,10 @@ do_compile_prepend_class-nativesdk() {
     echo "complocaledir=/usr/lib/locale" >> ${S}/configparms
 }
 
+do_compile_prepend_class-target() {
+    echo "complocaledir=${localedir}" >> ${S}/configparms
+}
+
 require glibc-package.inc
 
 BBCLASSEXTEND = "nativesdk"
