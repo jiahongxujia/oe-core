@@ -27,6 +27,13 @@ do_install_ptest () {
 	ln -sf ${bindir}/perl ${D}${PTEST_PATH}/t/perl
 	# Remove plan9 related stuff
 	rm -rf ${D}${PTEST_PATH}/plan9 ${D}${PTEST_PATH}/README.plan9 ${D}${PTEST_PATH}/pod/perlplan9.pod
+
+	# perl is located at /usr/bin/
+	p='^#![/.]*perl'
+	files=`grep -E ${p} ${D} -nr | grep -v -E 'Binary|win32' | cut -d ':' -f 1`
+	for f in ${files}; do
+		sed -i -e "s:${p}:#! ${USRBINPATH}/perl:g" ${f}
+	done
 }
 
 python populate_packages_prepend() {
