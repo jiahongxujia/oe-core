@@ -52,6 +52,13 @@ PACKAGES += "libasan libubsan liblsan libtsan"
 PACKAGES += "libasan-dev libubsan-dev liblsan-dev libtsan-dev"
 PACKAGES += "libasan-staticdev libubsan-staticdev liblsan-staticdev libtsan-staticdev"
 
+ALLOW_EMPTY_${MLPREFIX}liblsan = "1"
+ALLOW_EMPTY_${MLPREFIX}liblsan-dev = "1"
+ALLOW_EMPTY_${MLPREFIX}liblsan-staticdev = "1"
+ALLOW_EMPTY_${MLPREFIX}libtsan = "1"
+ALLOW_EMPTY_${MLPREFIX}libtsan-dev = "1"
+ALLOW_EMPTY_${MLPREFIX}libtsan-staticdev = "1"
+
 RDEPENDS_libasan += "libstdc++"
 RDEPENDS_libubsan += "libstdc++"
 RDEPENDS_liblsan += "libstdc++"
