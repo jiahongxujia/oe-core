@@ -39,6 +39,8 @@ do_install () {
         rmdir --ignore-fail-on-non-empty -p ${D}${infodir}
     fi
     chown -R root:root ${D}
+    # Fix broken libtool with stdc++, as sysroot is not set.
+    find ${D} -name \*.la -exec sed -i "/^dependency_libs=/s@'${libdir}'@=${libdir}@g" {} \;
 }
 
 INHIBIT_DEFAULT_DEPS = "1"
