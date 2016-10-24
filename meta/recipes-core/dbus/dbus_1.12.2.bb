@@ -92,7 +92,7 @@ pkg_postinst_dbus() {
 	fi
 }
 
-EXTRA_OECONF = "--disable-tests \
+EXTRA_OECONF = "${@bb.utils.contains('DISTRO_FEATURES', 'ptest', '--enable-embedded-tests --enable-asserts --enable-verbose-mode', '--disable-tests', d)} \
                 --disable-xml-docs \
                 --disable-doxygen-docs \
                 --disable-libaudit \
@@ -101,6 +101,8 @@ EXTRA_OECONF = "--disable-tests \
 
 EXTRA_OECONF_append_class-target = " SYSTEMCTL=${base_bindir}/systemctl"
 EXTRA_OECONF_append_class-native = " --disable-selinux"
+
+EXTRA_OEMAKE = "${@bb.utils.contains('DISTRO_FEATURES', 'ptest', 'CFLAG_VISIBILITY=-fvisibility=default', '', d)}"
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'systemd x11', d)}"
 PACKAGECONFIG_class-native = ""
