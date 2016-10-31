@@ -19,6 +19,7 @@ SRC_URI = "http://pkgs.fedoraproject.org/repo/pkgs/${BPN}/${BP}.tar.bz2/fbd9023b
            file://pax-3.4_fix_for_x32.patch \
            file://0001-include-sys-sysmacros.h-for-major-minor-definitions.patch \
            file://0001-Add-a-comment-for-fallthrough.patch \
+           file://pax-strip-off-file-name-s-trailing-slash.patch \
            "
 
 SRC_URI_append_libc-musl = " file://0001-Fix-build-with-musl.patch \
