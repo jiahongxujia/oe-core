@@ -229,7 +229,7 @@ python write_specfile () {
                 file = file.replace("[", "?")
                 file = file.replace("]", "?")
                 if conffiles.count(path + '/' + file):
-                    target.append('%config "' + path + '/' + file + '"')
+                    target.append('%config(noreplace) "' + path + '/' + file + '"')
                 else:
                     target.append('"' + path + '/' + file + '"')
 
