@@ -29,7 +29,8 @@ PACKAGECONFIG_remove_libc-musl = "lttng-ust"
 SRC_URI = "https://lttng.org/files/lttng-tools/lttng-tools-${PV}.tar.bz2 \
            file://x32.patch \
            file://run-ptest \
-           "
+           file://0001-Allow-multiple-attempts-to-connect-to-relayd.patch \
+"
 
 SRC_URI[md5sum] = "051224eb991aee07f8721ff1877d0b96"
 SRC_URI[sha256sum] = "77839eb6fc6c652125f08acfd9369701c2516eb05cc2084160e7efc7a3fb731c"
