@@ -82,3 +82,10 @@ do_configure_append_arm () {
 	echo "CFLAGS-abort.c = -fasynchronous-unwind-tables" >> ${B}/configparms
 	echo "CFLAGS-raise.c = -fasynchronous-unwind-tables" >> ${B}/configparms
 }
+
+# Ensure that plural.c is newer than its Bison source plural.y,
+# unless the latter is patched.
+do_unpack_workaround() {
+	touch ${S}/intl/plural.c
+}
+addtask unpack_workaround after do_unpack before do_patch
