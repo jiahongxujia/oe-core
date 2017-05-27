@@ -55,6 +55,7 @@ INITSCRIPT_NAME = "bind"
 INITSCRIPT_PARAMS = "defaults"
 
 SYSTEMD_SERVICE_${PN} = "named.service"
+SYSTEMD_AUTO_ENABLE_${PN} = "disable"
 
 PARALLEL_MAKE = ""
 
