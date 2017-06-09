@@ -66,7 +66,3 @@ do_configure_prepend() {
 	( cd ${S}
 	${S}/autogen.sh )
 }
-
-# grub and grub-efi's sysroot/${datadir}/grub/grub-mkconfig_lib are
-# conflicted, remove it since no one uses it.
-SYSROOT_DIRS_BLACKLIST += "${datadir}/grub/grub-mkconfig_lib"

@@ -3,7 +3,7 @@ require grub2.inc
 GRUBPLATFORM = "efi"
 
 DEPENDS_class-target = "grub-efi-native"
-RDEPENDS_${PN}_class-target = "diffutils freetype"
+RDEPENDS_${PN}_class-target = "diffutils freetype grub-common"
 
 SRC_URI += " \
            file://cfg \
@@ -37,6 +37,10 @@ do_install_class-native() {
 	install -m 755 grub-mkimage ${D}${bindir}
 }
 
+do_install_class-target() {
+	oe_runmake 'DESTDIR=${D}' -C grub-core install
+}
+
 GRUB_BUILDIN ?= "boot linux ext2 fat serial part_msdos part_gpt normal efi_gop iso9660 search"
 
 do_deploy() {
@@ -55,7 +59,6 @@ do_deploy_class-native() {
 addtask deploy after do_install before do_build
 
 FILES_${PN} += "${libdir}/grub/${GRUB_TARGET}-efi \
-                ${datadir}/grub \
                 "
 
 # 64-bit binaries are expected for the bootloader with an x32 userland
