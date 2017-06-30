@@ -26,6 +26,7 @@ SRC_URI = "http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${PV}.tar
            file://sshd_check_keys \
            file://add-test-support-for-busybox.patch \
            file://check-for-openssl-with-evp_des.patch \
+           file://restore-tcp-wrappers.patch \
            "
 
 PAM_SRC_URI = "file://sshd"
@@ -63,6 +64,9 @@ EXTRA_OECONF = "'LOGIN_PROGRAM=${base_bindir}/login' \
 
 # musl doesn't implement wtmp/utmp
 EXTRA_OECONF_append_libc-musl = " --disable-wtmp"
+
+PACKAGECONFIG ??= "tcp-wrappers"
+PACKAGECONFIG[tcp-wrappers] = "--with-tcp-wrappers,,tcp-wrappers"
 
 # Since we do not depend on libbsd, we do not want configure to use it
 # just because it finds libutil.h.  But, specifying --disable-libutil
