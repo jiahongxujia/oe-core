@@ -1,0 +1,1031 @@
+From 94585166dfea8232c248044f9f4b1c217dc4ac2e Mon Sep 17 00:00:00 2001
+From: Don Breazeal <donb@codesourcery.com>
+Date: Fri, 11 Sep 2015 11:06:02 -0700
+Subject: [PATCH] Extended-remote follow-exec
+
+This patch implements support for exec events on extended-remote Linux
+targets.  Follow-exec-mode and rerun behave as expected.  Catchpoints and
+test updates are implemented in subsequent patches.
+
+This patch was derived from a patch posted last October:
+https://sourceware.org/ml/gdb-patches/2014-10/msg00877.html.
+It was originally based on some work done by Luis Machado in 2013.
+
+IMPLEMENTATION
+----------------
+Exec events are enabled via ptrace options.
+
+When an exec event is detected by gdbserver, the existing process
+data, along with all its associated lwp and thread data, is deleted
+and replaced by data for a new single-threaded process.  The new
+process data is initialized with the appropriate parts of the state
+of the execing process.  This approach takes care of several potential
+pitfalls, including:
+
+ * deleting the data for an execing non-leader thread before any
+   wait/sigsuspend occurs
+ * correctly initializing the architecture of the execed process
+
+We then report the exec event using a new RSP stop reason, "exec".
+
+When GDB receives an "exec" event, it saves the status in the event
+structure's target_waitstatus field, like what is done for remote fork
+events.  Because the original and execed programs may have different
+architectures, we skip parsing the section of the stop reply packet
+that contains register data.  The register data will be retrieved
+later after the inferior's architecture has been set up by
+infrun.c:follow_exec.
+
+At that point the exec event is handled by the existing event handling
+in GDB.  However, a few changes were necessary so that
+infrun.c:follow_exec could accommodate the remote target.
+
+ * Where follow-exec-mode "new" is handled, we now call
+   add_inferior_with_spaces instead of add_inferior with separate calls
+   to set up the program and address spaces.  The motivation for this
+   is that add_inferior_with_spaces also sets up the initial architecture
+   for the inferior, which is needed later by target_find_description
+   when it calls target_gdbarch.
+
+ * We call a new target function, target_follow_exec.  This function
+   allows us to store the execd_pathname in the inferior, instead of
+   using the static string remote_exec_file from remote.c.  The static
+   string didn't work for follow-exec-mode "new", since once you switched
+   to the execed program, the original remote exec-file was lost.  The
+   execd_pathname is now stored in the inferior's program space as a
+   REGISTRY field.  All of the requisite mechanisms for this are
+   defined in remote.c.
+
+gdb/gdbserver/ChangeLog:
+
+        * linux-low.c (linux_mourn): Static declaration.
+        (linux_arch_setup): Move in front of
+        handle_extended_wait.
+        (linux_arch_setup_thread): New function.
+        (handle_extended_wait): Handle exec events.  Call
+        linux_arch_setup_thread.  Make event_lwp argument a
+        pointer-to-a-pointer.
+        (check_zombie_leaders): Do not check stopped threads.
+        (linux_low_ptrace_options): Add PTRACE_O_TRACEEXEC.
+        (linux_low_filter_event): Add lwp and thread for exec'ing
+        non-leader thread if leader thread has been deleted.
+        Refactor code into linux_arch_setup_thread and call it.
+        Pass child lwp pointer by reference to handle_extended_wait.
+        (linux_wait_for_event_filtered): Update comment.
+        (linux_wait_1): Prevent clobbering exec event status.
+        (linux_supports_exec_events): New function.
+        (linux_target_ops) <supports_exec_events>: Initialize new member.
+        * lynx-low.c (lynx_target_ops) <supports_exec_events>: Initialize
+        new member.
+        * remote-utils.c (prepare_resume_reply): New stop reason 'exec'.
+        * server.c (report_exec_events): New global variable.
+        (handle_query): Handle qSupported query for exec-events feature.
+        (captured_main): Initialize report_exec_events.
+        * server.h (report_exec_events): Declare new global variable.
+        * target.h (struct target_ops) <supports_exec_events>: New
+        member.
+        (target_supports_exec_events): New macro.
+        * win32-low.c (win32_target_ops) <supports_exec_events>:
+        Initialize new member.
+
+gdb/ChangeLog:
+
+        * infrun.c (follow_exec): Use process-style ptid for
+        exec message.  Call add_inferior_with_spaces and
+        target_follow_exec.
+        * nat/linux-ptrace.c (linux_supports_traceexec): New function.
+        * nat/linux-ptrace.h (linux_supports_traceexec): Declare.
+        * remote.c (remote_pspace_data): New static variable.
+        (remote_pspace_data_cleanup): New function.
+        (get_remote_exec_file): New function.
+        (set_remote_exec_file_1): New function.
+        (set_remote_exec_file): New function.
+        (show_remote_exec_file): New function.
+        (remote_exec_file): Delete static variable.
+        (anonymous enum) <PACKET_exec_event_feature> New
+        enumeration constant.
+        (remote_protocol_features): Add entry for exec-events feature.
+        (remote_query_supported): Add client side of qSupported query
+        for exec-events feature.
+        (remote_follow_exec): New function.
+        (remote_parse_stop_reply): Handle 'exec' stop reason.
+        (extended_remote_run, extended_remote_create_inferior): Call
+        get_remote_exec_file and set_remote_exec_file_1.
+        (init_extended_remote_ops) <to_follow_exec>: Initialize new
+        member.
+        (_initialize_remote): Call
+        register_program_space_data_with_cleanup.  Call
+        add_packet_config_cmd for remote exec-events feature.
+        Modify call to add_setshow_string_noescape_cmd for exec-file
+        to use new functions set_remote_exec_file and
+        show_remote_exec_file.
+        * target-debug.h, target-delegates.c: Regenerated.
+        * target.c (target_follow_exec): New function.
+        * target.h (struct target_ops) <to_follow_exec>: New member.
+        (target_follow_exec): Declare new function.
+
+git: git://sourceware.org/git/binutils-gdb.git 94585166dfea8232c248044f9f4b1c217dc4ac2e
+Upstream-Status: Backport
+
+Signed-off-by: Ranjan Amit <ranjan.amit@kpit.com>
+Signed-off-by: De Huo <De.Huo@windriver.com>
+---
+ gdb/gdbserver/ChangeLog      |   34 ++++++++++
+ gdb/gdbserver/linux-low.c    |  140 ++++++++++++++++++++++++++++++++++-----
+ gdb/gdbserver/lynx-low.c     |    1 +
+ gdb/gdbserver/remote-utils.c |   20 ++++++
+ gdb/gdbserver/server.c       |   11 ++++
+ gdb/gdbserver/server.h       |    1 +
+ gdb/gdbserver/target.h       |    7 ++
+ gdb/gdbserver/win32-low.c    |    1 +
+ gdb/infrun.c                 |   18 ++---
+ gdb/nat/linux-ptrace.c       |   11 ++++
+ gdb/nat/linux-ptrace.h       |    1 +
+ gdb/remote.c                 |  148 +++++++++++++++++++++++++++++++++++++++---
+ gdb/target-debug.h           |    2 +
+ gdb/target-delegates.c       |   30 +++++++++
+ gdb/target.c                 |    8 +++
+ gdb/target.h                 |    7 ++
+ 16 files changed, 406 insertions(+), 34 deletions(-)
+
+diff --git a/gdb/gdbserver/ChangeLog b/gdb/gdbserver/ChangeLog
+index 05e3860..bf1715a 100644
+--- a/gdb/gdbserver/ChangeLog
++++ b/gdb/gdbserver/ChangeLog
+@@ -5,6 +5,40 @@
+ 	TARGET_WAITKIND_VFORK_DONE switch case with the
+ 	TARGET_WAITKIND_FORKED case.
+ 
++2015-09-11  Don Breazeal  <donb@codesourcery.com>
++           Luis Machado  <lgustavo@codesourcery.com>
++
++       * linux-low.c (linux_mourn): Static declaration.
++       (linux_arch_setup): Move in front of
++       handle_extended_wait.
++       (linux_arch_setup_thread): New function.
++       (handle_extended_wait): Handle exec events.  Call
++       linux_arch_setup_thread.  Make event_lwp argument a
++       pointer-to-a-pointer.
++       (check_zombie_leaders): Do not check stopped threads.
++       (linux_low_ptrace_options): Add PTRACE_O_TRACEEXEC.
++       (linux_low_filter_event): Add lwp and thread for exec'ing
++       non-leader thread if leader thread has been deleted.
++       Refactor code into linux_arch_setup_thread and call it.
++       Pass child lwp pointer by reference to handle_extended_wait.
++       (linux_wait_for_event_filtered): Update comment.
++       (linux_wait_1): Prevent clobbering exec event status.
++       (linux_supports_exec_events): New function.
++       (linux_target_ops) <supports_exec_events>: Initialize new member.
++       * lynx-low.c (lynx_target_ops) <supports_exec_events>: Initialize
++       new member.
++       * remote-utils.c (prepare_resume_reply): New stop reason 'exec'.
++       * server.c (report_exec_events): New global variable.
++       (handle_query): Handle qSupported query for exec-events feature.
++       (captured_main): Initialize report_exec_events.
++       * server.h (report_exec_events): Declare new global variable.
++       * target.h (struct target_ops) <supports_exec_events>: New
++       member.
++       (target_supports_exec_events): New macro.
++       * win32-low.c (win32_target_ops) <supports_exec_events>:
++       Initialize new member.
++
++
+ 2015-08-19  Gary Benson  <gbenson@redhat.com>
+ 
+ 	* hostio.c (handle_pread): Do not attempt to read more data
+diff --git a/gdb/gdbserver/linux-low.c b/gdb/gdbserver/linux-low.c
+index a229c50..a855392 100644
+--- a/gdb/gdbserver/linux-low.c
++++ b/gdb/gdbserver/linux-low.c
+@@ -262,6 +262,7 @@ static int linux_wait_for_event_filtered (ptid_t wait_ptid, ptid_t filter_ptid,
+ 					  int *wstat, int options);
+ static int linux_wait_for_event (ptid_t ptid, int *wstat, int options);
+ static struct lwp_info *add_lwp (ptid_t ptid);
++static void linux_mourn (struct process_info *process);
+ static int linux_stopped_by_watchpoint (void);
+ static void mark_lwp_dead (struct lwp_info *lwp, int wstat);
+ static int lwp_is_marked_dead (struct lwp_info *lwp);
+@@ -419,13 +420,39 @@ linux_add_process (int pid, int attached)
+ 
+ static CORE_ADDR get_pc (struct lwp_info *lwp);
+ 
+-/* Handle a GNU/Linux extended wait response.  If we see a clone
+-   event, we need to add the new LWP to our list (and return 0 so as
+-   not to report the trap to higher layers).  */
++/* Implement the arch_setup target_ops method.  */
++
++static void
++linux_arch_setup (void)
++{
++  the_low_target.arch_setup ();
++}
++
++/* Call the target arch_setup function on THREAD.  */
++
++static void
++linux_arch_setup_thread (struct thread_info *thread)
++{
++  struct thread_info *saved_thread;
++
++  saved_thread = current_thread;
++  current_thread = thread;
++
++  linux_arch_setup ();
++
++  current_thread = saved_thread;
++}
++
++/* Handle a GNU/Linux extended wait response.  If we see a clone,
++   fork, or vfork event, we need to add the new LWP to our list
++   (and return 0 so as not to report the trap to higher layers).
++   If we see an exec event, we will modify ORIG_EVENT_LWP to point
++   to a new LWP representing the new program.  */
+ 
+ static int
+-handle_extended_wait (struct lwp_info *event_lwp, int wstat)
++handle_extended_wait (struct lwp_info **orig_event_lwp, int wstat)
+ {
++  struct lwp_info *event_lwp = *orig_event_lwp;
+   int event = linux_ptrace_get_extended_event (wstat);
+   struct thread_info *event_thr = get_lwp_thread (event_lwp);
+   struct lwp_info *new_lwp;
+@@ -571,6 +598,50 @@ handle_extended_wait (struct lwp_info *event_lwp, int wstat)
+       /* Report the event.  */
+       return 0;
+     }
++  else if (event == PTRACE_EVENT_EXEC && report_exec_events)
++    {
++      struct process_info *proc;
++      ptid_t event_ptid;
++      pid_t event_pid;
++
++      if (debug_threads)
++	{
++	  debug_printf ("HEW: Got exec event from LWP %ld\n",
++			lwpid_of (event_thr));
++	}
++
++      /* Get the event ptid.  */
++      event_ptid = ptid_of (event_thr);
++      event_pid = ptid_get_pid (event_ptid);
++
++      /* Delete the execing process and all its threads.  */
++      proc = get_thread_process (event_thr);
++      linux_mourn (proc);
++      current_thread = NULL;
++
++      /* Create a new process/lwp/thread.  */
++      proc = linux_add_process (event_pid, 0);
++      event_lwp = add_lwp (event_ptid);
++      event_thr = get_lwp_thread (event_lwp);
++      gdb_assert (current_thread == event_thr);
++      linux_arch_setup_thread (event_thr);
++
++      /* Set the event status.  */
++      event_lwp->waitstatus.kind = TARGET_WAITKIND_EXECD;
++      event_lwp->waitstatus.value.execd_pathname
++	= xstrdup (linux_proc_pid_to_exec_file (lwpid_of (event_thr)));
++
++      /* Mark the exec status as pending.  */
++      event_lwp->stopped = 1;
++      event_lwp->status_pending_p = 1;
++      event_lwp->status_pending = wstat;
++      event_thr->last_resume_kind = resume_continue;
++      event_thr->last_status.kind = TARGET_WAITKIND_IGNORE;
++
++      /* Report the event.  */
++      *orig_event_lwp = event_lwp;
++      return 0;
++    }
+ 
+   internal_error (__FILE__, __LINE__, _("unknown ptrace event %d"), event);
+ }
+@@ -1631,7 +1702,7 @@ check_zombie_leaders (void)
+ 		      leader_pid, leader_lp!= NULL, num_lwps (leader_pid),
+ 		      linux_proc_pid_is_zombie (leader_pid));
+ 
+-      if (leader_lp != NULL
++      if (leader_lp != NULL && !leader_lp->stopped
+ 	  /* Check if there are other threads in the group, as we may
+ 	     have raced with the inferior simply exiting.  */
+ 	  && !last_thread_of_process_p (leader_pid)
+@@ -2090,6 +2161,9 @@ linux_low_ptrace_options (int attached)
+   if (report_vfork_events)
+     options |= (PTRACE_O_TRACEVFORK | PTRACE_O_TRACEVFORKDONE);
+ 
++  if (report_exec_events)
++    options |= PTRACE_O_TRACEEXEC;
++
+   return options;
+ }
+ 
+@@ -2106,6 +2180,38 @@ linux_low_filter_event (int lwpid, int wstat)
+ 
+   child = find_lwp_pid (pid_to_ptid (lwpid));
+ 
++  /* Check for stop events reported by a process we didn't already
++     know about - anything not already in our LWP list.
++
++     If we're expecting to receive stopped processes after
++     fork, vfork, and clone events, then we'll just add the
++     new one to our list and go back to waiting for the event
++     to be reported - the stopped process might be returned
++     from waitpid before or after the event is.
++
++     But note the case of a non-leader thread exec'ing after the
++     leader having exited, and gone from our lists (because
++     check_zombie_leaders deleted it).  The non-leader thread
++     changes its tid to the tgid.  */
++
++  if (WIFSTOPPED (wstat) && child == NULL && WSTOPSIG (wstat) == SIGTRAP
++      && linux_ptrace_get_extended_event (wstat) == PTRACE_EVENT_EXEC)
++    {
++      ptid_t child_ptid;
++
++      /* A multi-thread exec after we had seen the leader exiting.  */
++      if (debug_threads)
++	{
++	  debug_printf ("LLW: Re-adding thread group leader LWP %d"
++			"after exec.\n", lwpid);
++	}
++
++      child_ptid = ptid_build (lwpid, lwpid, 0);
++      child = add_lwp (child_ptid);
++      child->stopped = 1;
++      current_thread = child->thread;
++    }
++
+   /* If we didn't find a process, one of two things presumably happened:
+      - A process we started and then detached from has exited.  Ignore it.
+      - A process we are controlling has forked and the new child's stop
+@@ -2164,15 +2270,7 @@ linux_low_filter_event (int lwpid, int wstat)
+       proc = find_process_pid (pid_of (thread));
+       if (proc->priv->new_inferior)
+ 	{
+-	  struct thread_info *saved_thread;
+-
+-	  saved_thread = current_thread;
+-	  current_thread = thread;
+-
+-	  the_low_target.arch_setup ();
+-
+-	  current_thread = saved_thread;
+-
++	  linux_arch_setup_thread (thread);
+ 	  proc->priv->new_inferior = 0;
+ 	}
+     }
+@@ -2192,7 +2290,7 @@ linux_low_filter_event (int lwpid, int wstat)
+       && linux_is_extended_waitstatus (wstat))
+     {
+       child->stop_pc = get_pc (child);
+-      if (handle_extended_wait (child, wstat))
++      if (handle_extended_wait (&child, wstat))
+ 	{
+ 	  /* The event has been handled, so just return without
+ 	     reporting it.  */
+@@ -2401,8 +2499,7 @@ linux_wait_for_event_filtered (ptid_t wait_ptid, ptid_t filter_ptid,
+ 	 - When a non-leader thread execs, that thread just vanishes
+ 	   without reporting an exit (so we'd hang if we waited for it
+ 	   explicitly in that case).  The exec event is reported to
+-	   the TGID pid (although we don't currently enable exec
+-	   events).  */
++	   the TGID pid.  */
+       errno = 0;
+       ret = my_waitpid (-1, wstatp, options | WNOHANG);
+ 
+@@ -5780,6 +5877,14 @@ linux_supports_vfork_events (void)
+   return linux_supports_tracefork ();
+ }
+ 
++/* Check if exec events are supported.  */
++
++static int
++linux_supports_exec_events (void)
++{
++  return linux_supports_traceexec ();
++}
++
+ /* Callback for 'find_inferior'.  Set the (possibly changed) ptrace
+    options for the specified lwp.  */
+ 
+@@ -6867,6 +6972,7 @@ static struct target_ops linux_target_ops = {
+   linux_supports_multi_process,
+   linux_supports_fork_events,
+   linux_supports_vfork_events,
++  linux_supports_exec_events,
+   linux_handle_new_gdb_connection,
+ #ifdef USE_THREAD_DB
+   thread_db_handle_monitor_command,
+diff --git a/gdb/gdbserver/lynx-low.c b/gdb/gdbserver/lynx-low.c
+index ee7b28a..fd89869 100644
+--- a/gdb/gdbserver/lynx-low.c
++++ b/gdb/gdbserver/lynx-low.c
+@@ -764,6 +764,7 @@ static struct target_ops lynx_target_ops = {
+   NULL,  /* supports_multi_process */
+   NULL,  /* supports_fork_events */
+   NULL,  /* supports_vfork_events */
++  NULL,  /* supports_exec_events */
+   NULL,  /* handle_new_gdb_connection */
+   NULL,  /* handle_monitor_command */
+ };
+diff --git a/gdb/gdbserver/remote-utils.c b/gdb/gdbserver/remote-utils.c
+index cee7fa5..6147d17 100644
+--- a/gdb/gdbserver/remote-utils.c
++++ b/gdb/gdbserver/remote-utils.c
+@@ -1117,6 +1117,7 @@ prepare_resume_reply (char *buf, ptid_t ptid,
+     case TARGET_WAITKIND_FORKED:
+     case TARGET_WAITKIND_VFORKED:
+     case TARGET_WAITKIND_VFORK_DONE:
++    case TARGET_WAITKIND_EXECD:
+       {
+ 	struct thread_info *saved_thread;
+ 	const char **regp;
+@@ -1140,6 +1141,25 @@ prepare_resume_reply (char *buf, ptid_t ptid,
+ 
+ 	    sprintf (buf, "T%02xvforkdone:;", signal);
+ 	  }
++	else if (status->kind == TARGET_WAITKIND_EXECD && multi_process)
++	  {
++	    enum gdb_signal signal = GDB_SIGNAL_TRAP;
++	    const char *event = "exec";
++	    char hexified_pathname[PATH_MAX * 2];
++
++	    sprintf (buf, "T%02x%s:", signal, event);
++	    buf += strlen (buf);
++
++	    /* Encode pathname to hexified format.  */
++	    bin2hex ((const gdb_byte *) status->value.execd_pathname,
++		     hexified_pathname,
++		     strlen (status->value.execd_pathname));
++
++	    sprintf (buf, "%s;", hexified_pathname);
++	    xfree (status->value.execd_pathname);
++	    status->value.execd_pathname = NULL;
++	    buf += strlen (buf);
++	  }
+ 	else
+ 	  sprintf (buf, "T%02x", status->value.sig);
+ 
+diff --git a/gdb/gdbserver/server.c b/gdb/gdbserver/server.c
+index 7e388dd..2b98d7c 100644
+--- a/gdb/gdbserver/server.c
++++ b/gdb/gdbserver/server.c
+@@ -59,6 +59,7 @@ int run_once;
+ int multi_process;
+ int report_fork_events;
+ int report_vfork_events;
++int report_exec_events;
+ int non_stop;
+ int swbreak_feature;
+ int hwbreak_feature;
+@@ -2107,6 +2108,12 @@ handle_query (char *own_buf, int packet_len, int *new_packet_len_p)
+ 		  if (target_supports_vfork_events ())
+ 		    report_vfork_events = 1;
+ 		}
++	      if (strcmp (p, "exec-events+") == 0)
++		{
++		  /* GDB supports and wants exec events if possible.  */
++		  if (target_supports_exec_events ())
++		    report_exec_events = 1;
++		}
+ 	      else
+ 		target_process_qsupported (p);
+ 
+@@ -2163,6 +2170,9 @@ handle_query (char *own_buf, int packet_len, int *new_packet_len_p)
+       if (target_supports_vfork_events ())
+ 	strcat (own_buf, ";vfork-events+");
+ 
++      if (target_supports_exec_events ())
++	strcat (own_buf, ";exec-events+");
++
+       if (target_supports_non_stop ())
+ 	strcat (own_buf, ";QNonStop+");
+ 
+@@ -3545,6 +3555,7 @@ captured_main (int argc, char *argv[])
+       multi_process = 0;
+       report_fork_events = 0;
+       report_vfork_events = 0;
++      report_exec_events = 0;
+       /* Be sure we're out of tfind mode.  */
+       current_traceframe = -1;
+       cont_thread = null_ptid;
+diff --git a/gdb/gdbserver/server.h b/gdb/gdbserver/server.h
+index 09a5624..258909d 100644
+--- a/gdb/gdbserver/server.h
++++ b/gdb/gdbserver/server.h
+@@ -86,6 +86,7 @@ extern int run_once;
+ extern int multi_process;
+ extern int report_fork_events;
+ extern int report_vfork_events;
++extern int report_exec_events;
+ extern int non_stop;
+ 
+ /* True if the "swbreak+" feature is active.  In that case, GDB wants
+diff --git a/gdb/gdbserver/target.h b/gdb/gdbserver/target.h
+index aaecab9..d919d5a 100644
+--- a/gdb/gdbserver/target.h
++++ b/gdb/gdbserver/target.h
+@@ -288,6 +288,9 @@ struct target_ops
+   /* Returns true if vfork events are supported.  */
+   int (*supports_vfork_events) (void);
+ 
++  /* Returns true if exec events are supported.  */
++  int (*supports_exec_events) (void);
++
+   /* Allows target to re-initialize connection-specific settings.  */
+   void (*handle_new_gdb_connection) (void);
+ 
+@@ -459,6 +462,10 @@ int kill_inferior (int);
+   (the_target->supports_vfork_events ? \
+    (*the_target->supports_vfork_events) () : 0)
+ 
++#define target_supports_exec_events() \
++  (the_target->supports_exec_events ? \
++   (*the_target->supports_exec_events) () : 0)
++
+ #define target_handle_new_gdb_connection()		 \
+   do							 \
+     {							 \
+diff --git a/gdb/gdbserver/win32-low.c b/gdb/gdbserver/win32-low.c
+index 64caf24..f7a3c0b 100644
+--- a/gdb/gdbserver/win32-low.c
++++ b/gdb/gdbserver/win32-low.c
+@@ -1831,6 +1831,7 @@ static struct target_ops win32_target_ops = {
+   NULL, /* supports_multi_process */
+   NULL, /* supports_fork_events */
+   NULL, /* supports_vfork_events */
++  NULL, /* supports_exec_events */
+   NULL, /* handle_new_gdb_connection */
+   NULL, /* handle_monitor_command */
+   NULL, /* core_of_thread */
+diff --git a/gdb/infrun.c b/gdb/infrun.c
+index 445a612..63498dc 100644
+--- a/gdb/infrun.c
++++ b/gdb/infrun.c
+@@ -1056,6 +1056,7 @@ follow_exec (ptid_t ptid, char *execd_pathname)
+   struct thread_info *th, *tmp;
+   struct inferior *inf = current_inferior ();
+   int pid = ptid_get_pid (ptid);
++  ptid_t process_ptid;
+ 
+   /* This is an exec event that we actually wish to pay attention to.
+      Refresh our symbol table to the newly exec'd program, remove any
+@@ -1122,8 +1123,9 @@ follow_exec (ptid_t ptid, char *execd_pathname)
+   update_breakpoints_after_exec ();
+ 
+   /* What is this a.out's name?  */
++  process_ptid = pid_to_ptid (pid);
+   printf_unfiltered (_("%s is executing new program: %s\n"),
+-		     target_pid_to_str (inferior_ptid),
++		     target_pid_to_str (process_ptid),
+ 		     execd_pathname);
+ 
+   /* We've followed the inferior through an exec.  Therefore, the
+@@ -1152,20 +1154,18 @@ follow_exec (ptid_t ptid, char *execd_pathname)
+ 
+   if (follow_exec_mode_string == follow_exec_mode_new)
+     {
+-      struct program_space *pspace;
+-
+       /* The user wants to keep the old inferior and program spaces
+ 	 around.  Create a new fresh one, and switch to it.  */
+ 
+-      inf = add_inferior (current_inferior ()->pid);
+-      pspace = add_program_space (maybe_new_address_space ());
+-      inf->pspace = pspace;
+-      inf->aspace = pspace->aspace;
++      inf = add_inferior_with_spaces ();
++      inf->pid = pid;
++      target_follow_exec (inf, execd_pathname);
+ 
+-      exit_inferior_num_silent (current_inferior ()->num);
++//      exit_inferior_num_silent (current_inferior ()->num);
+ 
+       set_current_inferior (inf);
+-      set_current_program_space (pspace);
++      set_current_program_space (inf->pspace);
++      add_thread (ptid);
+     }
+   else
+     {
+diff --git a/gdb/nat/linux-ptrace.c b/gdb/nat/linux-ptrace.c
+index 1a926f9..bd88e06 100644
+--- a/gdb/nat/linux-ptrace.c
++++ b/gdb/nat/linux-ptrace.c
+@@ -537,6 +537,17 @@ linux_supports_tracefork (void)
+   return ptrace_supports_feature (PTRACE_O_TRACEFORK);
+ }
+ 
++/* Returns non-zero if PTRACE_EVENT_EXEC is supported by ptrace,
++   0 otherwise.  Note that if PTRACE_EVENT_FORK is supported so is
++   PTRACE_EVENT_CLONE, PTRACE_EVENT_FORK and PTRACE_EVENT_VFORK,
++   since they were all added to the kernel at the same time.  */
++
++int
++linux_supports_traceexec (void)
++{
++  return ptrace_supports_feature (PTRACE_O_TRACEEXEC);
++}
++
+ /* Returns non-zero if PTRACE_EVENT_CLONE is supported by ptrace,
+    0 otherwise.  Note that if PTRACE_EVENT_CLONE is supported so is
+    PTRACE_EVENT_FORK, PTRACE_EVENT_EXEC and PTRACE_EVENT_VFORK,
+diff --git a/gdb/nat/linux-ptrace.h b/gdb/nat/linux-ptrace.h
+index be6c395..6d534ee 100644
+--- a/gdb/nat/linux-ptrace.h
++++ b/gdb/nat/linux-ptrace.h
+@@ -161,6 +161,7 @@ extern void linux_check_ptrace_features (void);
+ extern void linux_enable_event_reporting (pid_t pid, int attached);
+ extern void linux_disable_event_reporting (pid_t pid);
+ extern int linux_supports_tracefork (void);
++extern int linux_supports_traceexec (void);
+ extern int linux_supports_traceclone (void);
+ extern int linux_supports_tracevforkdone (void);
+ extern int linux_supports_tracesysgood (void);
+diff --git a/gdb/remote.c b/gdb/remote.c
+index 610da1e..1c8f71e 100644
+--- a/gdb/remote.c
++++ b/gdb/remote.c
+@@ -73,6 +73,15 @@
+ static char *target_buf;
+ static long target_buf_size;
+ 
++/* Per-program-space data key.  */
++static const struct program_space_data *remote_pspace_data;
++
++/* The variable registered as the control variable used by the
++   remote exec-file commands.  While the remote exec-file setting is
++   per-program-space, the set/show machinery uses this as the 
++   location of the remote exec-file value.  */
++static char *remote_exec_file_var;
++
+ /* The size to align memory write packets, when practical.  The protocol
+    does not guarantee any alignment, and gdb will generate short
+    writes and unaligned writes, but even as a best-effort attempt this
+@@ -614,6 +623,63 @@ get_remote_state (void)
+   return get_remote_state_raw ();
+ }
+ 
++/* Cleanup routine for the remote module's pspace data.  */
++
++static void
++remote_pspace_data_cleanup (struct program_space *pspace, void *arg)
++{
++  char *remote_exec_file = arg;
++
++  xfree (remote_exec_file);
++}
++
++/* Fetch the remote exec-file from the current program space.  */
++
++static const char *
++get_remote_exec_file (void)
++{
++  char *remote_exec_file;
++
++  remote_exec_file = program_space_data (current_program_space,
++					 remote_pspace_data);
++  if (remote_exec_file == NULL)
++    return "";
++
++  return remote_exec_file;
++}
++
++/* Set the remote exec file for PSPACE.  */
++
++static void
++set_pspace_remote_exec_file (struct program_space *pspace,
++			char *remote_exec_file)
++{
++  char *old_file = program_space_data (pspace, remote_pspace_data);
++
++  xfree (old_file);
++  set_program_space_data (pspace, remote_pspace_data,
++			  xstrdup (remote_exec_file));
++}
++
++/* The "set/show remote exec-file" set command hook.  */
++
++static void
++set_remote_exec_file (char *ignored, int from_tty,
++		      struct cmd_list_element *c)
++{
++  gdb_assert (remote_exec_file_var != NULL);
++  set_pspace_remote_exec_file (current_program_space, remote_exec_file_var);
++}
++
++/* The "set/show remote exec-file" show command hook.  */
++
++static void
++show_remote_exec_file (struct ui_file *file, int from_tty,
++		       struct cmd_list_element *cmd, const char *value)
++{
++  fprintf_filtered (file, "%s\n", remote_exec_file_var);
++}
++
+ static int
+ compare_pnums (const void *lhs_, const void *rhs_)
+ {
+@@ -896,10 +962,6 @@ static unsigned int remote_address_size;
+ 
+ static int remote_async_terminal_ours_p;
+ 
+-/* The executable file to use for "run" on the remote side.  */
+-
+-static char *remote_exec_file = "";
+-
+ 
+ /* User configurable variables for the number of characters in a
+    memory read/write packet.  MIN (rsa->remote_packet_size,
+@@ -1399,6 +1461,9 @@ enum {
+   /* Support for the Qbtrace-conf:pt:size packet.  */
+   PACKET_Qbtrace_conf_pt_size,
+ 
++  /* Support for exec events.  */
++  PACKET_exec_event_feature,
++
+   PACKET_MAX
+ };
+ 
+@@ -4195,6 +4260,8 @@ static const struct protocol_feature remote_protocol_features[] = {
+     PACKET_fork_event_feature },
+   { "vfork-events", PACKET_DISABLE, remote_supported_packet,
+     PACKET_vfork_event_feature },
++  { "exec-events", PACKET_DISABLE, remote_supported_packet,
++    PACKET_exec_event_feature },
+   { "Qbtrace-conf:pt:size", PACKET_DISABLE, remote_supported_packet,
+     PACKET_Qbtrace_conf_pt_size }
+ };
+@@ -4283,6 +4350,9 @@ remote_query_supported (void)
+ 	  if (packet_set_cmd_state (PACKET_vfork_event_feature)
+ 	      != AUTO_BOOLEAN_FALSE)
+ 	    q = remote_query_supported_append (q, "vfork-events+");
++	  if (packet_set_cmd_state (PACKET_exec_event_feature)
++	      != AUTO_BOOLEAN_FALSE)
++	    q = remote_query_supported_append (q, "exec-events+");
+ 	}
+ 
+       q = reconcat (q, "qSupported:", q, (char *) NULL);
+@@ -4694,6 +4764,24 @@ remote_follow_fork (struct target_ops *ops, int follow_child,
+   return 0;
+ }
+ 
++/* Target follow-exec function for remote targets.  Save EXECD_PATHNAME
++   in the program space of the new inferior.  On entry and at return the
++   current inferior is the exec'ing inferior.  INF is the new exec'd
++   inferior, which may be the same as the exec'ing inferior unless
++   follow-exec-mode is "new".  */
++
++static void
++remote_follow_exec (struct target_ops *ops,
++		    struct inferior *inf, char *execd_pathname)
++{
++  /* We know that this is a target file name, so if it has the "target:"
++     prefix we strip it off before saving it in the program space.  */
++  if (is_target_filename (execd_pathname))
++    execd_pathname += strlen (TARGET_SYSROOT_PREFIX);
++
++  set_pspace_remote_exec_file (inf->pspace, execd_pathname);
++}
++
+ /* Same as remote_detach, but don't send the "D" packet; just disconnect.  */
+ 
+ static void
+@@ -5863,6 +5951,7 @@ remote_parse_stop_reply (char *buf, struct stop_reply *event)
+   struct remote_arch_state *rsa = get_remote_arch_state ();
+   ULONGEST addr;
+   char *p;
++  int skipregs = 0;
+ 
+   event->ptid = null_ptid;
+   event->rs = get_remote_state ();
+@@ -5975,11 +6064,42 @@ Packet: '%s'\n"),
+ 	      event->ws.kind = TARGET_WAITKIND_VFORK_DONE;
+ 	      p = skip_to_semicolon (p1 + 1);
+ 	    }
++	  else if (strncmp (p, "exec", p1 - p) == 0)
++	    {
++	      ULONGEST ignored;
++	      char pathname[PATH_MAX];
++	      int pathlen;
++
++	      /* Determine the length of the execd pathname.  */
++	      p = unpack_varlen_hex (++p1, &ignored);
++	      pathlen = (p - p1) / 2;
++
++	      /* Save the pathname for event reporting and for
++		 the next run command.  */
++	      hex2bin (p1, (gdb_byte *) pathname, pathlen);
++	      pathname[pathlen] = '\0';
++
++	      /* This is freed during event handling.  */
++	      event->ws.value.execd_pathname = xstrdup (pathname);
++	      event->ws.kind = TARGET_WAITKIND_EXECD;
++
++	      /* Skip the registers included in this packet, since
++		 they may be for an architecture different from the
++		 one used by the original program.  */
++	      skipregs = 1;
++	    }
+ 	  else
+ 	    {
+ 	      ULONGEST pnum;
+ 	      char *p_temp;
+ 
++	      if (skipregs)
++		{
++		  p = skip_to_semicolon (p1 + 1);
++		  p++;
++		  continue;
++		}
++
+ 	      /* Maybe a real ``P'' register number.  */
+ 	      p_temp = unpack_varlen_hex (p, &pnum);
+ 	      /* If the first invalid character is the colon, we got a
+@@ -8461,6 +8581,7 @@ extended_remote_run (char *args)
+ {
+   struct remote_state *rs = get_remote_state ();
+   int len;
++  const char *remote_exec_file = get_remote_exec_file ();
+ 
+   /* If the user has disabled vRun support, or we have detected that
+      support is not available, do not try it.  */
+@@ -8533,6 +8654,7 @@ extended_remote_create_inferior (struct target_ops *ops,
+   int run_worked;
+   char *stop_reply;
+   struct remote_state *rs = get_remote_state ();
++  const char *remote_exec_file = get_remote_exec_file ();
+ 
+   /* If running asynchronously, register the target file descriptor
+      with the event loop.  */
+@@ -12534,6 +12656,7 @@ Specify the serial device it is connected to (e.g. /dev/ttya).";
+   extended_remote_ops.to_supports_disable_randomization
+     = extended_remote_supports_disable_randomization;
+   extended_remote_ops.to_follow_fork = remote_follow_fork;
++  extended_remote_ops.to_follow_exec = remote_follow_exec;
+   extended_remote_ops.to_insert_fork_catchpoint
+     = remote_insert_fork_catchpoint;
+   extended_remote_ops.to_remove_fork_catchpoint
+@@ -12765,6 +12888,10 @@ _initialize_remote (void)
+   remote_g_packet_data_handle =
+     gdbarch_data_register_pre_init (remote_g_packet_data_init);
+ 
++  remote_pspace_data
++    = register_program_space_data_with_cleanup (NULL,
++						remote_pspace_data_cleanup);
++
+   /* Initialize the per-target state.  At the moment there is only one
+      of these, not one per target.  Only one target is active at a
+      time.  */
+@@ -13141,6 +13268,9 @@ Show the maximum size of the address (in bits) in a memory packet."), NULL,
+   add_packet_config_cmd (&remote_protocol_packets[PACKET_Qbtrace_conf_pt_size],
+        "Qbtrace-conf:pt:size", "btrace-conf-pt-size", 0);
+ 
++  add_packet_config_cmd (&remote_protocol_packets[PACKET_exec_event_feature],
++			 "exec-event-feature", "exec-event-feature", 0);
++
+   /* Assert that we've registered "set remote foo-packet" commands
+      for all packet configs.  */
+   {
+@@ -13210,12 +13340,14 @@ Transfer files to and from the remote target system."),
+ 	   _("Delete a remote file."),
+ 	   &remote_cmdlist);
+ 
+-  remote_exec_file = xstrdup ("");
+   add_setshow_string_noescape_cmd ("exec-file", class_files,
+-				   &remote_exec_file, _("\
++				   &remote_exec_file_var, _("\
+ Set the remote pathname for \"run\""), _("\
+-Show the remote pathname for \"run\""), NULL, NULL, NULL,
+-				   &remote_set_cmdlist, &remote_show_cmdlist);
++Show the remote pathname for \"run\""), NULL,
++				   set_remote_exec_file,
++				   show_remote_exec_file,
++				   &remote_set_cmdlist,
++				   &remote_show_cmdlist);
+ 
+   add_setshow_boolean_cmd ("range-stepping", class_run,
+ 			   &use_range_stepping, _("\
+diff --git a/gdb/target-debug.h b/gdb/target-debug.h
+index 63ce12c..d5438df 100644
+--- a/gdb/target-debug.h
++++ b/gdb/target-debug.h
+@@ -152,6 +152,8 @@
+   target_debug_do_print (host_address_to_string (X))
+ #define target_debug_print_const_struct_btrace_target_info_p(X)	\
+   target_debug_do_print (host_address_to_string (X))
++#define target_debug_print_struct_inferior_p(X)	\
++  target_debug_do_print (host_address_to_string (X))
+ 
+ static void
+ target_debug_print_struct_target_waitstatus_p (struct target_waitstatus *status)
+diff --git a/gdb/target-delegates.c b/gdb/target-delegates.c
+index a2a3e48..7127723 100644
+--- a/gdb/target-delegates.c
++++ b/gdb/target-delegates.c
+@@ -1214,6 +1214,32 @@ debug_remove_exec_catchpoint (struct target_ops *self, int arg1)
+   return result;
+ }
+ 
++static void
++delegate_follow_exec (struct target_ops *self, struct inferior *arg1, char *arg2)
++{
++  self = self->beneath;
++  self->to_follow_exec (self, arg1, arg2);
++}
++
++static void
++tdefault_follow_exec (struct target_ops *self, struct inferior *arg1, char *arg2)
++{
++}
++
++static void
++debug_follow_exec (struct target_ops *self, struct inferior *arg1, char *arg2)
++{
++  fprintf_unfiltered (gdb_stdlog, "-> %s->to_follow_exec (...)\n", debug_target.to_shortname);
++  debug_target.to_follow_exec (&debug_target, arg1, arg2);
++  fprintf_unfiltered (gdb_stdlog, "<- %s->to_follow_exec (", debug_target.to_shortname);
++  target_debug_print_struct_target_ops_p (&debug_target);
++  fputs_unfiltered (", ", gdb_stdlog);
++  target_debug_print_struct_inferior_p (arg1);
++  fputs_unfiltered (", ", gdb_stdlog);
++  target_debug_print_char_p (arg2);
++  fputs_unfiltered (")\n", gdb_stdlog);
++}
++
+ static int
+ delegate_set_syscall_catchpoint (struct target_ops *self, int arg1, int arg2, int arg3, int arg4, int *arg5)
+ {
+@@ -3987,6 +4013,8 @@ install_delegators (struct target_ops *ops)
+     ops->to_insert_exec_catchpoint = delegate_insert_exec_catchpoint;
+   if (ops->to_remove_exec_catchpoint == NULL)
+     ops->to_remove_exec_catchpoint = delegate_remove_exec_catchpoint;
++  if (ops->to_follow_exec == NULL)
++    ops->to_follow_exec = delegate_follow_exec;
+   if (ops->to_set_syscall_catchpoint == NULL)
+     ops->to_set_syscall_catchpoint = delegate_set_syscall_catchpoint;
+   if (ops->to_has_exited == NULL)
+@@ -4236,6 +4264,7 @@ install_dummy_methods (struct target_ops *ops)
+   ops->to_follow_fork = default_follow_fork;
+   ops->to_insert_exec_catchpoint = tdefault_insert_exec_catchpoint;
+   ops->to_remove_exec_catchpoint = tdefault_remove_exec_catchpoint;
++  ops->to_follow_exec = tdefault_follow_exec;
+   ops->to_set_syscall_catchpoint = tdefault_set_syscall_catchpoint;
+   ops->to_has_exited = tdefault_has_exited;
+   ops->to_mourn_inferior = default_mourn_inferior;
+@@ -4385,6 +4414,7 @@ init_debug_target (struct target_ops *ops)
+   ops->to_follow_fork = debug_follow_fork;
+   ops->to_insert_exec_catchpoint = debug_insert_exec_catchpoint;
+   ops->to_remove_exec_catchpoint = debug_remove_exec_catchpoint;
++  ops->to_follow_exec = debug_follow_exec;
+   ops->to_set_syscall_catchpoint = debug_set_syscall_catchpoint;
+   ops->to_has_exited = debug_has_exited;
+   ops->to_mourn_inferior = debug_mourn_inferior;
+diff --git a/gdb/target.c b/gdb/target.c
+index 4dd991a..f9b1764 100644
+--- a/gdb/target.c
++++ b/gdb/target.c
+@@ -2289,6 +2289,14 @@ target_follow_fork (int follow_child, int detach_fork)
+ 					follow_child, detach_fork);
+ }
+ 
++/* Target wrapper for follow exec hook.  */
++
++void
++target_follow_exec (struct inferior *inf, char *execd_pathname)
++{
++  current_target.to_follow_exec (&current_target, inf, execd_pathname);
++}
++
+ static void
+ default_mourn_inferior (struct target_ops *self)
+ {
+diff --git a/gdb/target.h b/gdb/target.h
+index 46d52d1..b891c6b 100644
+--- a/gdb/target.h
++++ b/gdb/target.h
+@@ -599,6 +599,8 @@ struct target_ops
+       TARGET_DEFAULT_RETURN (1);
+     int (*to_remove_exec_catchpoint) (struct target_ops *, int)
+       TARGET_DEFAULT_RETURN (1);
++    void (*to_follow_exec) (struct target_ops *, struct inferior *, char *)
++      TARGET_DEFAULT_IGNORE ();
+     int (*to_set_syscall_catchpoint) (struct target_ops *,
+ 				      int, int, int, int, int *)
+       TARGET_DEFAULT_RETURN (1);
+@@ -1567,6 +1569,11 @@ extern void target_load (const char *arg, int from_tty);
+ 
+ int target_follow_fork (int follow_child, int detach_fork);
+ 
++/* Handle the target-specific bookkeeping required when the inferior
++   makes an exec call.  INF is the exec'd inferior.  */
++
++void target_follow_exec (struct inferior *inf, char *execd_pathname);
++
+ /* On some targets, we can catch an inferior exec event when it
+    occurs.  These functions insert/remove an already-created
+    catchpoint for such events.  They return  0 for success, 1 if the
+-- 
+1.7.9.5
+

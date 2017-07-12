@@ -4,6 +4,8 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552 \
 		    file://COPYING3.LIB;md5=6a6a8e020838b23406c81b19c1d46df6 \
 		    file://COPYING.LIB;md5=9f604d8a4f8e74f4f5140845a21b6674"
 
+SRC_URI += "file://0001-Extended-remote-follow-exec.patch \
+           "
 SRC_URI[md5sum] = "b93a2721393e5fa226375b42d567d90b"
 SRC_URI[sha256sum] = "ff14f8050e6484508c73cbfa63731e57901478490ca1672dc0b5e2b03f6af622"
 
