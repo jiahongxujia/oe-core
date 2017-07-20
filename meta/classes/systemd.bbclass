@@ -34,6 +34,7 @@ if type systemctl >/dev/null 2>/dev/null; then
 	if [ -z "$D" -a "${SYSTEMD_AUTO_ENABLE}" = "enable" ]; then
 		systemctl restart ${SYSTEMD_SERVICE}
 	fi
+        :   #Make sure a 0 is returned even for a mask service
 fi
 }
 
