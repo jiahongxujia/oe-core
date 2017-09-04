@@ -261,6 +261,7 @@ PACKAGES =+ "${PN}-ralink-license ${PN}-ralink \
              ${PN}-ibt-license ${PN}-ibt ${PN}-ibt-misc \
              ${PN}-ibt-11-5 ${PN}-ibt-12-16 ${PN}-ibt-hw-37-7 ${PN}-ibt-hw-37-8 \
              ${PN}-i915-license ${PN}-i915 \
+             ${PN}-qat-license ${PN}-qat_895xcc ${PN}-qat_895xcc_mmp ${PN}-qat_c3xxx ${PN}-qat_c3xxx_mmp ${PN}-qat_c62x ${PN}-qat_c62x_mmp ${PN}-qat_mmp \
              ${PN}-adsp-sst-license ${PN}-adsp-sst \
              ${PN}-bnx2-mips \
              ${PN}-netronome-license ${PN}-netronome \
@@ -713,6 +714,32 @@ LICENSE_${PN}-adsp-sst            = "Firmware-adsp_sst"
 LICENSE_${PN}-adsp-sst-license    = "Firmware-adsp_sst"
 FILES_${PN}-adsp-sst              = "${nonarch_base_libdir}/firmware/intel/dsp_fw*"
 RDEPENDS_${PN}-adsp-sst           = "${PN}-adsp-sst-license"
+
+# For qat
+LICENSE_${PN}-qat_895xcc	= "Firmware-qat"
+LICENSE_${PN}-qat_895xcc_mmp	= "Firmware-qat"
+LICENSE_${PN}-qat_c3xxx		= "Firmware-qat"
+LICENSE_${PN}-qat_c3xxx_mmp	= "Firmware-qat"
+LICENSE_${PN}-qat_c62x		= "Firmware-qat"
+LICENSE_${PN}-qat_c62x_mmp	= "Firmware-qat"
+LICENSE_${PN}-qat_mmp		= "Firmware-qat"
+
+FILES_${PN}-qat-license		= "${nonarch_base_libdir}/firmware/LICENCE.qat_firmware"
+FILES_${PN}-qat_895xcc		= "${nonarch_base_libdir}/firmware/qat_895xcc.bin"
+FILES_${PN}-qat_895xcc_mmp	= "${nonarch_base_libdir}/firmware/qat_895xcc_mmp.bin"
+FILES_${PN}-qat_c3xxx		= "${nonarch_base_libdir}/firmware/qat_c3xxx.bin"
+FILES_${PN}-qat_c3xxx_mmp	= "${nonarch_base_libdir}/firmware/qat_c3xxx_mmp.bin"
+FILES_${PN}-qat_c62x		= "${nonarch_base_libdir}/firmware/qat_c62x.bin"
+FILES_${PN}-qat_c62x_mmp	= "${nonarch_base_libdir}/firmware/qat_c62x_mmp.bin"
+FILES_${PN}-qat_mmp		= "${nonarch_base_libdir}/firmware/qat_mmp.bin"
+
+RDEPENDS_${PN}-qat_895xcc = "${PN}-qat-license"
+RDEPENDS_${PN}-qat_895xcc_mmp = "${PN}-qat-license"
+RDEPENDS_${PN}-qat_c3xxx = "${PN}-qat-license"
+RDEPENDS_${PN}-qat_c3xxx_mmp = "${PN}-qat-license"
+RDEPENDS_${PN}-qat_c62x = "${PN}-qat-license"
+RDEPENDS_${PN}-qat_c62x_mmp = "${PN}-qat-license"
+RDEPENDS_${PN}-qat_mmp = "${PN}-qat-license"
 
 # For other firmwares
 # Maybe split out to separate packages when needed.
