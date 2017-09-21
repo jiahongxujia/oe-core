@@ -133,7 +133,12 @@ py_package_preprocess () {
 
 	# Remove references to buildmachine paths in target Makefile and _sysconfigdata
 	sed -i -e 's:--sysroot=${STAGING_DIR_TARGET}::g' -e s:'--with-libtool-sysroot=${STAGING_DIR_TARGET}'::g \
+		-e 's:${STAGING_DIR_NATIVE}::g' \
+		-e 's:${STAGING_DIR_HOST}::g' \
+		-e 's:${WORKDIR}::g' \
+		-e 's:${TMPDIR}::g' \
 		${PKGD}/${libdir}/python${PYTHON_MAJMIN}/config/Makefile \
+		${PKGD}/${libdir}/python${PYTHON_MAJMIN}/config/config.c \
 		${PKGD}/${libdir}/python${PYTHON_MAJMIN}/_sysconfigdata.py
     python -m py_compile ${PKGD}/${libdir}/python${PYTHON_MAJMIN}/_sysconfigdata.py
 }
