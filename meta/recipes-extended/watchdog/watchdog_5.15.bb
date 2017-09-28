@@ -36,12 +36,17 @@ INITSCRIPT_PARAMS_${PN} = "start 15 1 2 3 4 5 . stop 85 0 6 ."
 INITSCRIPT_NAME_${PN}-keepalive = "wd_keepalive"
 INITSCRIPT_PARAMS_${PN}-keepalive = "start 15 1 2 3 4 5 . stop 85 0 6 ."
 
-SYSTEMD_SERVICE_${PN} = "watchdog.service wd_keepalive.service"
+SYSTEMD_PACKAGES = "${PN} ${PN}-keepalive"
+SYSTEMD_SERVICE_${PN} = "watchdog.service"
+SYSTEMD_SERVICE_${PN}-keepalive = "wd_keepalive.service"
 
 do_install_append() {
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${S}/debian/watchdog.service ${D}${systemd_system_unitdir}
 	install -m 0644 ${S}/debian/wd_keepalive.service ${D}${systemd_system_unitdir}
+	# remove specific code for debian
+	sed -i -e '/^ExecStartPost/d' \
+		-e '/^ExecStopPost/d' ${D}${systemd_system_unitdir}/wd_keepalive.service
 
 	install -D ${S}/redhat/watchdog.init ${D}/${sysconfdir}/init.d/watchdog.sh
 	install -Dm 0755 ${WORKDIR}/wd_keepalive.init ${D}${sysconfdir}/init.d/wd_keepalive
@@ -54,6 +59,7 @@ PACKAGES =+ "${PN}-keepalive"
 
 FILES_${PN}-keepalive = " \
     ${sysconfdir}/init.d/wd_keepalive \
+    ${systemd_system_unitdir}/wd_keepalive.service \
     ${sbindir}/wd_keepalive \
 "
 
