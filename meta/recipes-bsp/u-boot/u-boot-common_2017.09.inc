@@ -12,6 +12,7 @@ SRCREV = "c98ac3487e413c71e5d36322ef3324b21c6f60f9"
 SRC_URI = "git://git.denx.de/u-boot.git \
     file://MPC8315ERDB-enable-DHCP.patch \
     file://10m50-update-device-tree.patch \
+    file://scripts-Makefile.autoconf-ensure-sync-is-done-if-ln-.patch \
 "
 
 S = "${WORKDIR}/git"
