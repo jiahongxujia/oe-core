@@ -186,8 +186,12 @@ py_package_preprocess () {
 	# copy back the old Makefile to fix target package
 	install -m 0644 ${B}/Makefile.orig ${PKGD}/${libdir}/python${PYTHON_MAJMIN}/config/Makefile
 	install -m 0644 ${B}/Makefile.orig ${PKGD}/${libdir}/python${PYTHON_MAJMIN}/config-${PYTHON_MAJMIN}${PYTHON_ABI}/Makefile
+	# do this first so string will match
+	sed -i 	-e 's:${DEBUG_PREFIX_MAP}::g' \
+		${PKGD}/${bindir}/python${PYTHON_MAJMIN}${PYTHON_ABI}-config
 	# Remove references to buildmachine paths in target Makefile and _sysconfigdata
-	sed -i -e 's:--sysroot=${STAGING_DIR_TARGET}::g' -e s:'--with-libtool-sysroot=${STAGING_DIR_TARGET}'::g \
+	sed -i 	-e 's:--sysroot=${STAGING_DIR_TARGET}::g' \
+		-e s:'--with-libtool-sysroot=${STAGING_DIR_TARGET}'::g \
 		-e 's:${STAGING_DIR_NATIVE}::g' \
 		-e 's:${STAGING_DIR_HOST}::g' \
 		-e 's:${WORKDIR}::g' \
