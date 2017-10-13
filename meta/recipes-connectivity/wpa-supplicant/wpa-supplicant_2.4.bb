@@ -38,7 +38,15 @@ SRC_URI = "http://hostap.epitest.fi/releases/wpa_supplicant-${PV}.tar.gz \
            file://0001-Reject-psk-parameter-set-with-invalid-passphrase-cha.patch \
            file://0002-Reject-SET_CRED-commands-with-newline-characters-in-.patch \
            file://0003-Reject-SET-commands-with-newline-characters-in-the-s.patch \
+           file://0001-hostapd-Avoid-key-reinstallation-in-FT-handshake.patch \
+           file://0002-Prevent-reinstallation-of-an-already-in-use-group-ke.patch \
+           file://0003-Extend-protection-of-GTK-IGTK-reinstallation-of-WNM-.patch \
+           file://0004-Prevent-installation-of-an-all-zero-TK.patch \
+           file://0005-Fix-PTK-rekeying-to-generate-a-new-ANonce.patch \
+           file://0006-TDLS-Reject-TPK-TK-reconfiguration.patch \
+           file://0008-FT-Do-not-allow-multiple-Reassociation-Response-fram.patch \
           "
+
 SRC_URI[md5sum] = "f0037dbe03897dcaf2ad2722e659095d"
 SRC_URI[sha256sum] = "058dc832c096139a059e6df814080f50251a8d313c21b13364c54a1e70109122"
 
