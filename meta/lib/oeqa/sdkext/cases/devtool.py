@@ -26,9 +26,6 @@ class DevtoolTest(OESDKExtTestCase):
         shutil.rmtree(cls.myapp_dst)
         shutil.rmtree(cls.myapp_cmake_dst)
 
-        # Clean sources dir to make "git clone" can run again
-        shutil.rmtree(os.path.join(cls.tc.sdk_dir, "workspace/sources"), True)
-
     def _test_devtool_build(self, directory):
         self._run('devtool add myapp %s' % directory)
         try:
