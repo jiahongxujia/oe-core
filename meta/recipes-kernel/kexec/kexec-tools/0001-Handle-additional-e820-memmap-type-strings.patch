@@ -1,0 +1,42 @@
+From fab91841c717150aca4bc73e4c54769305e27ade Mon Sep 17 00:00:00 2001
+From: Eric DeVolder <eric.devolder@oracle.com>
+Date: Wed, 10 May 2017 11:03:37 -0500
+Subject: [PATCH] Handle additional e820 memmap type strings
+
+Keep pace with changes to linux arch/x86/kernel/e820.c to
+function e820_type_to_string(). With this change, the following
+messages from kexec are eliminated (and allows kexec to load):
+
+ Unknown type (Reserved) while parsing /sys/firmware/memmap/8/type.
+ Please report this as bug. Using RANGE_RESERVED now.
+
+ Unknown type (Unknown E820 type) while parsing /sys/firmware/memmap/4/type.
+ Please report this as bug. Using RANGE_RESERVED now.
+
+Upstream-Status: Backport [https://git.kernel.org/pub/scm/utils/kernel/kexec/kexec-tools.git/commit/?id=fab91841c717150aca4bc73e4c54769305e27ade]
+
+Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Liwei Song <liwei.song@windriver.com>
+---
+ kexec/firmware_memmap.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kexec/firmware_memmap.c b/kexec/firmware_memmap.c
+index 4d84f0011c57..1ee214aa9316 100644
+--- a/kexec/firmware_memmap.c
++++ b/kexec/firmware_memmap.c
+@@ -164,6 +164,10 @@ static int parse_memmap_entry(const char *entry, struct memory_range *range)
+ 		range->type = RANGE_RESERVED;
+ 	else if (strcmp(type, "reserved") == 0)
+ 		range->type = RANGE_RESERVED;
++	else if (strcmp(type, "Reserved") == 0)
++		range->type = RANGE_RESERVED;
++	else if (strcmp(type, "Unknown E820 type") == 0)
++		range->type = RANGE_RESERVED;
+ 	else if (strcmp(type, "ACPI Non-volatile Storage") == 0)
+ 		range->type = RANGE_ACPI_NVS;
+ 	else if (strcmp(type, "Uncached RAM") == 0)
+-- 
+2.7.4
+
