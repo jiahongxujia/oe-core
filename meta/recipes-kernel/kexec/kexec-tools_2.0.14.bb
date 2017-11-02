@@ -21,6 +21,9 @@ SRC_URI += "${KERNELORG_MIRROR}/linux/utils/kernel/kexec/kexec-tools-${PV}.tar.g
             file://kexec-x32.patch \
             file://0001-Disable-PIE-during-link.patch \
             file://0001-arm64-Disable-PIC.patch \
+            file://0001-build_mem_phdrs-check-if-p_paddr-is-invalid.patch \
+            file://0001-x86-Support-large-number-of-memory-ranges.patch \
+            file://0001-Handle-additional-e820-memmap-type-strings.patch \
          "
 
 SRC_URI[md5sum] = "b2b2c5e6b29d467d6e99d587fb6b7cf5"
