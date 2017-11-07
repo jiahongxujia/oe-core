@@ -79,6 +79,7 @@ SRC_URI = "\
 "
 BACKPORTS = "\
            file://0001-PR-rtl-optimization-81803.patch \
+           file://0051-ARM-PR-82445-suppress-32-bit-aligned-ldrd-strd-peeph.patch \
            file://0001-PR-rtl-optimization-83030.patch \
 "
 SRC_URI[md5sum] = "ff370482573133a7fcdd96cd2f552292"
