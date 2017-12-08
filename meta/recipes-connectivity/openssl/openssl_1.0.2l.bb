@@ -43,6 +43,7 @@ SRC_URI += "file://find.pl;subdir=openssl-${PV}/util/ \
             file://0001-Fix-build-with-clang-using-external-assembler.patch \
             file://0001-openssl-force-soft-link-to-avoid-rare-race.patch  \
             file://openssl-CVE-2017-3737.patch  \
+            file://openssl-CVE-2017-3738.patch  \
             "
 SRC_URI[md5sum] = "f85123cd390e864dfbe517e7616e6566"
 SRC_URI[sha256sum] = "ce07195b659e75f4e1db43552860070061f156a98bb37b672b101ba6e3ddf30c"
