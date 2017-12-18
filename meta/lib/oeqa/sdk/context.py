@@ -22,8 +22,9 @@ class OESDKTestContext(OETestContextThreaded):
         self.host_pkg_manifest = host_pkg_manifest
 
     def _hasPackage(self, manifest, pkg):
-        for host_pkg in manifest.keys():
-            if re.search(pkg, host_pkg):
+        pat = re.compile(pkg)
+        for s in manifest.keys():
+            if pat.search(s):
                 return True
         return False
 
@@ -32,6 +33,16 @@ class OESDKTestContext(OETestContextThreaded):
 
     def hasTargetPackage(self, pkg):
         return self._hasPackage(self.target_pkg_manifest, pkg)
+
+    def hasPrefixedTargetPackage(self, pkg):
+        # extract multilib from environment script name
+        try:
+            p = re.match(".*(lib.?[36][24]-)linux-?", self.sdk_env).group(1) + pkg
+        except:
+            p = pkg
+
+        # bb.warn("Searching for multilib pkg %s" % (p))
+        return self.hasTargetPackage(p)
 
 class OESDKTestContextExecutor(OETestContextExecutor):
     _context_class = OESDKTestContext
