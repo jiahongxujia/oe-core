@@ -21,6 +21,10 @@ SRC_URI = "http://www.openssl.org/source/openssl-${PV}.tar.gz \
            file://openssl-CVE-2017-3738.patch \
           "
 
+SRC_URI_append_class-nativesdk = " \
+    file://environment.d-openssl.sh \
+   "
+
 S = "${WORKDIR}/openssl-${PV}"
 
 inherit lib_package multilib_header ptest
@@ -136,6 +140,13 @@ do_install_append_class-native () {
         install -Dm 0755 ${WORKDIR}/openssl-c_rehash.sh ${D}${bindir}/c_rehash
         sed -i -e 's,/etc/openssl,${sysconfdir}/ssl,g' ${D}${bindir}/c_rehash
 }
+
+do_install_append_class-nativesdk() {
+    mkdir -p ${D}${SDKPATHNATIVE}/environment-setup.d
+    install -m 644 ${WORKDIR}/environment.d-openssl.sh ${D}${SDKPATHNATIVE}/environment-setup.d/openssl.sh
+}
+
+FILES_${PN}_append_class-nativesdk = " ${SDKPATHNATIVE}/environment-setup.d/openssl.sh"
 
 do_install_ptest() {
         cp -r * ${D}${PTEST_PATH}
