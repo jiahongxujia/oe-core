@@ -5,12 +5,16 @@ GIO_MODULE_PACKAGES ??= "${PN}"
 
 gio_module_cache_common() {
 if [ "x$D" != "x" ]; then
-    $INTERCEPT_DIR/postinst_intercept update_gio_module_cache ${PKG} \
+    if ${@bb.utils.contains('MACHINE_FEATURES', 'qemu-usermode', 'true','false', d)}; then
+        $INTERCEPT_DIR/postinst_intercept update_gio_module_cache ${PKG} \
             mlprefix=${MLPREFIX} \
             binprefix=${MLPREFIX} \
             libdir=${libdir} \
             base_libdir=${base_libdir} \
             bindir=${bindir}
+    else
+        exit 1
+    fi
 else
     ${libexecdir}/${MLPREFIX}gio-querymodules ${libdir}/gio/modules/
 fi
