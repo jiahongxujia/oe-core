@@ -17,13 +17,17 @@ FONTCONFIG_CACHE_PARAMS ?= "-v"
 FONTCONFIG_CACHE_ENV ?= "FC_DEBUG=1"
 fontcache_common() {
 if [ -n "$D" ] ; then
-	$INTERCEPT_DIR/postinst_intercept update_font_cache ${PKG} mlprefix=${MLPREFIX} \
-		'bindir="${bindir}"' \
-		'libdir="${libdir}"' \
-		'base_libdir="${base_libdir}"' \
-		'fontconfigcachedir="${FONTCONFIG_CACHE_DIR}"' \
-		'fontconfigcacheparams="${FONTCONFIG_CACHE_PARAMS}"' \
-		'fontconfigcacheenv="${FONTCONFIG_CACHE_ENV}"'
+	if ${@bb.utils.contains('MACHINE_FEATURES', 'qemu-usermode', 'true','false', d)}; then
+		$INTERCEPT_DIR/postinst_intercept update_font_cache ${PKG} mlprefix=${MLPREFIX} \
+			'bindir="${bindir}"' \
+			'libdir="${libdir}"' \
+			'base_libdir="${base_libdir}"' \
+			'fontconfigcachedir="${FONTCONFIG_CACHE_DIR}"' \
+			'fontconfigcacheparams="${FONTCONFIG_CACHE_PARAMS}"' \
+			'fontconfigcacheenv="${FONTCONFIG_CACHE_ENV}"'
+	else
+		exit 1
+	fi
 else
 	${FONTCONFIG_CACHE_ENV} fc-cache ${FONTCONFIG_CACHE_PARAMS}
 fi
