@@ -53,6 +53,7 @@ do_install() {
         # architecture (since scripts and helpers are native format).
         KBUILD_OUTPUT="$kerneldir"
         oe_runmake -C $kerneldir CC="${KERNEL_CC}" LD="${KERNEL_LD}" clean _mrproper_scripts
+        touch -c $kerneldir/.config
         # make clean generates an absolute path symlink called "source"
         # in $kerneldir points to $kerneldir, which doesn't make any
         # sense, so remove it.
