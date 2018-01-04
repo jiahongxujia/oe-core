@@ -596,9 +596,13 @@ pkg_prerm_${PN} () {
 PACKAGE_WRITE_DEPS += "qemu-native"
 pkg_postinst_udev-hwdb () {
 	if test -n "$D"; then
-		${@qemu_run_binary(d, '$D', '${base_bindir}/udevadm')} hwdb --update \
+		if ${@bb.utils.contains('MACHINE_FEATURES', 'qemu-usermode', 'true','false', d)}; then
+			${@qemu_run_binary(d, '$D', '${base_bindir}/udevadm')} hwdb --update \
 			--root $D
-		chown root:root $D${sysconfdir}/udev/hwdb.bin
+			chown root:root $D${sysconfdir}/udev/hwdb.bin
+		else
+			exit 1
+		fi
 	else
 		udevadm hwdb --update
 	fi
