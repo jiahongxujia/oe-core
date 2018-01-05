@@ -17,6 +17,7 @@ SRC_URI += "\
             file://builddir.patch \
             file://parallel-makeinst-create-bindir.patch \
             file://revert_use_of_sysconfigdata.patch \
+            file://CVE-2017-1000158.patch \
            "
 
 S = "${WORKDIR}/Python-${PV}"
