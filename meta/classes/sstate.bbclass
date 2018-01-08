@@ -545,7 +545,7 @@ python sstate_hardcode_path () {
         sstate_grep_cmd = "grep -l -e '%s' -e '%s'" % (staging_target, staging_host)
         sstate_sed_cmd += " -e 's:%s:FIXMESTAGINGDIRTARGET:g'" % staging_target
     else:
-        sstate_grep_cmd = "grep -l -e '%s'" % (staging_target)
+        sstate_grep_cmd = "grep -l -e '%s' -e '%s'" % (staging_target, staging_host)
         sstate_sed_cmd += " -e 's:%s:FIXMESTAGINGDIRTARGET:g'" % staging_target
 
     extra_staging_fixmes = d.getVar('EXTRA_STAGING_FIXMES') or ''
