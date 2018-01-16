@@ -11,7 +11,7 @@ SRC_URI = "http://www.lysator.liu.se/~nisse/archive/${BP}.tar.gz \
 
 UPSTREAM_CHECK_REGEX = "nettle-(?P<pver>\d+(\.\d+)+)\.tar"
 
-inherit autotools ptest
+inherit autotools ptest multilib_header
 
 EXTRA_OECONF = "--disable-openssl"
 
@@ -23,6 +23,10 @@ do_configure_prepend() {
 
 do_compile_ptest() {
         oe_runmake buildtest
+}
+
+do_install_append() {
+	oe_multilib_header nettle/nettle-stdint.h nettle/version.h
 }
 
 do_install_ptest() {
