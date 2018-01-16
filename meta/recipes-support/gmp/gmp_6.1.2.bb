@@ -32,6 +32,10 @@ do_install_prepend_class-target() {
          ${B}/gmp.h
 }
 
+do_install_append() {
+	oe_multilib_header gmp.h
+}
+
 SSTATE_SCAN_FILES += "gmp.h"
 
 # Doesn't compile in MIPS16e mode due to use of hand-written
