@@ -1,0 +1,36 @@
+From e8b8880a281ccb0082f6cad63eb253b921f31fef Mon Sep 17 00:00:00 2001
+From: Jackie Huang <jackie.huang@windriver.com>
+Date: Thu, 18 Jan 2018 17:57:08 -0800
+Subject: [PATCH] update-alternatives: fix the sed pattern in remove_alt
+
+'\>' is to matches the end of a word, but the executable is
+not always a 'word', e.g. /usr/lib64/busybox/usr/bin/[
+
+then such alternatives can not be removed.
+
+So change to use '\s' in the pattern since the following
+character of the $path is whitespace.
+
+Upstream-Status: Submitted [yocto@yoctoproject.org, opkg-devel@googlegroups.com]
+
+Signed-off-by: Jackie Huang <jackie.huang@windriver.com>
+---
+ update-alternatives | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/update-alternatives b/update-alternatives
+index ffad853..ce7d66c 100644
+--- a/update-alternatives
++++ b/update-alternatives
+@@ -80,7 +80,7 @@ remove_alt() {
+ 	[ ! -f $ad/$name ] && return 0
+ 
+ 	path=`echo $path | protect_slashes | protect_special_character`
+-	sed -ne "/^$path\>.*/!p" $ad/$name > $ad/$name.new
++	sed -ne "/^$path\s.*/!p" $ad/$name > $ad/$name.new
+ 	mv $ad/$name.new $ad/$name
+ }
+ 
+-- 
+2.7.4
+
