@@ -19,6 +19,7 @@ SRC_URI = "${GNOME_MIRROR}/${BPN}/${MAJ_VER}/${BPN}-${PV}.tar.xz \
            file://fatal-loader.patch \
            file://0001-Work-around-thumbnailer-cross-compile-failure.patch \
            file://0001-queryloaders-Make-output-more-reproducible.patch \
+           file://CVE-2017-1000422.patch \
            "
 
 SRC_URI[md5sum] = "e0aaa0061eb12667b32b27472230b962"
