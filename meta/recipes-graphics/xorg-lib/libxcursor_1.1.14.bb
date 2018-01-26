@@ -20,3 +20,5 @@ XORG_PN = "libXcursor"
 
 SRC_URI[md5sum] = "1e7c17afbbce83e2215917047c57d1b3"
 SRC_URI[sha256sum] = "9bc6acb21ca14da51bda5bc912c8955bc6e5e433f0ab00c5e8bef842596c33df"
+
+SRC_URI += "file://CVE-2017-16612.patch "
