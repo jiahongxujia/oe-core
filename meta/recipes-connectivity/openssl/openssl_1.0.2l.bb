@@ -44,6 +44,7 @@ SRC_URI += "file://find.pl;subdir=openssl-${PV}/util/ \
             file://0001-openssl-force-soft-link-to-avoid-rare-race.patch  \
             file://openssl-CVE-2017-3737.patch  \
             file://openssl-CVE-2017-3738.patch  \
+            file://CVE-2017-3736.patch  \
             "
 
 SRC_URI_append_class-nativesdk = " \

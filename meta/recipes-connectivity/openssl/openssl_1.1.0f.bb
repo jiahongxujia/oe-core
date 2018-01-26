@@ -19,6 +19,7 @@ SRC_URI = "http://www.openssl.org/source/openssl-${PV}.tar.gz \
            file://0001-Take-linking-flags-from-LDFLAGS-env-var.patch \
            file://0001-Remove-test-that-requires-running-as-non-root.patch \
            file://openssl-CVE-2017-3738.patch \
+           file://CVE-2017-3736.patch \
           "
 
 SRC_URI_append_class-nativesdk = " \
