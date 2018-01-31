@@ -8,6 +8,14 @@ SRC_URI += "file://musl-arm-inb-outb.patch \
             file://CVE-2017-10971-1.patch \
             file://CVE-2017-10971-2.patch \
             file://CVE-2017-10971-3.patch \
+            file://CVE-2017-12176.patch \
+            file://CVE-2017-12177.patch \
+            file://CVE-2017-12178.patch \
+            file://CVE-2017-12180-CVE-2017-12181-CVE-2017-12182.patch \
+            file://CVE-2017-12183.patch \
+            file://CVE-2017-12184-CVE-2017-12185-CVE-2017-12186-CVE-2017-12187.patch \
+            file://0001-Xi-Test-exact-size-of-XIBarrierReleasePointer.patch \
+            file://CVE-2017-12179.patch \
             "
 SRC_URI[md5sum] = "015d2fc4b9f2bfe7a626edb63a62c65e"
 SRC_URI[sha256sum] = "677a8166e03474719238dfe396ce673c4234735464d6dadf2959b600d20e5a98"
