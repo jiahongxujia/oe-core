@@ -30,6 +30,7 @@ SRC_URI += " \
            file://0001-tmpfiles.d-don-t-create-the-symbol-link.patch \
            file://0001-core-evaluate-presets-after-generators-have-run-6526.patch \
            file://0001-main-skip-many-initialization-steps-when-running-in-.patch \
+           file://CVE-2017-18078.patch \
            "
 SRC_URI_append_qemuall = " file://0001-core-device.c-Change-the-default-device-timeout-to-2.patch"
 
