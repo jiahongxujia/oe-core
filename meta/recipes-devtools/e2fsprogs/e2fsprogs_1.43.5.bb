@@ -2,7 +2,6 @@ require e2fsprogs.inc
 
 SRC_URI += "file://acinclude.m4 \
             file://remove.ldconfig.call.patch \
-            file://quiet-debugfs.patch \
             file://run-ptest \
             file://ptest.patch \
             file://mkdir.patch \
@@ -12,7 +11,9 @@ SRC_URI += "file://acinclude.m4 \
             file://0001-misc-create_inode.c-set-dir-s-mode-correctly.patch \
 "
 
-SRC_URI_append_class-native = " file://e2fsprogs-fix-missing-check-for-permission-denied.patch"
+SRC_URI_append_class-native = " file://e2fsprogs-fix-missing-check-for-permission-denied.patch \
+                                file://quiet-debugfs.patch \
+"
 
 SRCREV = "2a13c84b513aa094d1cda727e92d35a89dd777da"
 UPSTREAM_CHECK_GITTAGREGEX = "v(?P<pver>\d+\.\d+(\.\d+)*)$"
