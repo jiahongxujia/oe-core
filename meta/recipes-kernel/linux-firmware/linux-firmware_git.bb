@@ -435,7 +435,7 @@ LICENSE_${PN}-rtl-license = "Firmware-rtlwifi_firmware"
 
 LICENSE_${PN}-usb8897 = "Firmware-Marvell"
 FILES_${PN}-usb8897 = " \
-  /lib/firmware/mrvl/usb8897_uapsta.bin \
+  ${nonarch_base_libdir}/firmware/mrvl/usb8897_uapsta.bin \
 "
 RDEPENDS_${PN}-usb8897 += "${PN}-marvell-license"
 
