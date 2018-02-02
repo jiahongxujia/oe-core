@@ -12,6 +12,7 @@ SRC_URI = "${GNU_MIRROR}/libtasn1/libtasn1-${PV}.tar.gz \
            file://dont-depend-on-help2man.patch \
            file://0001-stdint.m4-reintroduce-GNULIB_OVERRIDES_WINT_T-check.patch \
            file://CVE-2017-10790.patch \
+           file://CVE-2018-6003.patch \
            "
 
 DEPENDS = "bison-native"
