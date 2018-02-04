@@ -504,6 +504,7 @@ python extend_recipe_sysroot() {
                 variant = ''
 
         native = False
+        searched_manifest = []
         if c.endswith("-native"):
             manifest = d2.expand("${SSTATE_MANIFESTS}/manifest-${BUILD_ARCH}-%s.populate_sysroot" % c)
             native = True
@@ -518,13 +519,25 @@ python extend_recipe_sysroot() {
         else:
             pkgarchs = ['${MACHINE_ARCH}']
             pkgarchs = pkgarchs + list(reversed(d2.getVar("PACKAGE_EXTRA_ARCHS").split()))
+            # Search multilib archs for multilib image recipe like lib32-core-image-minimal
+            mlprefix = d2.getVar('MLPREFIX')
+            if bb.data.inherits_class('image', d2) and mlprefix:
+                ml_variant = mlprefix.rstrip('-')
+                override = ":virtclass-multilib-" + ml_variant
+                localdata = bb.data.createCopy(d2)
+                overrides = localdata.getVar("OVERRIDES", False) + ":virtclass-multilib-" + ml_variant
+                localdata.setVar("OVERRIDES", overrides)
+                pkgarchs = pkgarchs + list(reversed(localdata.getVar("PACKAGE_EXTRA_ARCHS").split()))
             pkgarchs.append('allarch')
             for pkgarch in pkgarchs:
                 manifest = d2.expand("${SSTATE_MANIFESTS}/manifest-%s-%s.populate_sysroot" % (pkgarch, c))
                 if os.path.exists(manifest):
                     break
+                searched_manifest.append(manifest)
         if not os.path.exists(manifest):
-            bb.warn("Manifest %s not found?" % manifest)
+            if not searched_manifest:
+                searched_manifest.append(manifest)
+            bb.warn("Manifest for %s not found, searched manifests:\n%s" % (c, '\n'.join(searched_manifest)))
         else:
             newmanifest = collections.OrderedDict()
             if native:

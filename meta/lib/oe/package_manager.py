@@ -120,7 +120,7 @@ class OpkgIndexer(Indexer):
     def write_index(self):
         arch_vars = ["ALL_MULTILIB_PACKAGE_ARCHS",
                      "SDK_PACKAGE_ARCHS",
-                     "MULTILIB_ARCHS"]
+                     ]
 
         opkg_index_cmd = bb.utils.which(os.getenv('PATH'), "opkg-make-index")
         if self.d.getVar('PACKAGE_FEED_SIGN') == '1':
@@ -467,10 +467,10 @@ class RpmPM(PackageManager):
         self.target_rootfs = target_rootfs
         self.target_vendor = target_vendor
         self.task_name = task_name
-        if arch_var == None:
-            self.archs = self.d.getVar('ALL_MULTILIB_PACKAGE_ARCHS').replace("-","_")
-        else:
-            self.archs = self.d.getVar(arch_var).replace("-","_")
+
+        self.archs = self._determine_archs(arch_var)
+        bb.note("The archs used by package manager: %s" % self.archs)
+
         if task_name == "host":
             self.primary_arch = self.d.getVar('SDK_ARCH')
         else:
@@ -489,9 +489,56 @@ class RpmPM(PackageManager):
         if not os.path.exists(self.d.expand('${T}/saved')):
             bb.utils.mkdirhier(self.d.expand('${T}/saved'))
 
+    def _determine_archs(self, arch_var):
+        if arch_var:
+            archs = self.d.getVar(arch_var).replace("-","_").split()
+        else:
+            archs = self.d.getVar('ALL_MULTILIB_PACKAGE_ARCHS').replace("-","_").split()
+        # Reverse archs to ensure the -best- match is listed firstly, but need
+        # make sure not mixed with multilib archs, and let multilib archs have
+        # higher a priority for multilib image:
+        # For non-multilib image: (e.g., core-image-minimal)
+        # machine_arch:package_archs:multilib_archs:allarch_archs
+        # For multilib image: (e.g., lib32-core-image-minimal)
+        # machine_arch:multilib_archs:package_archs:allarch_archs
+        package_archs_var = self.d.getVar('PACKAGE_ARCHS').replace("-","_").split()
+        machine_arch_var = [self.d.getVar('MACHINE_ARCH').replace("-","_")]
+        package_archs = []
+        allarch_archs = []
+        ml_archs = []
+        machine_arch = []
+        for arch in archs:
+            if arch in machine_arch_var:
+                bb.note("Found MACHINE_ARCH: %s" % arch)
+                machine_arch.append(arch)
+            elif arch in package_archs_var:
+                bb.note("Found PACKAGE_ARCH: %s" % arch)
+                package_archs.append(arch)
+            elif arch in 'all any noarch'.split():
+                bb.note("Found allarch: %s" % arch)
+                allarch_archs.append(arch)
+            else:
+                bb.note("Found multilib arch: %s" % arch)
+                ml_archs.append(arch)
+        package_archs.reverse()
+        if machine_arch:
+            archs = machine_arch
+        mlprefix = self.d.getVar('MLPREFIX')
+        if ml_archs:
+            ml_archs.reverse()
+            if mlprefix:
+                archs += ml_archs + package_archs
+            else:
+                archs += package_archs + ml_archs
+        else:
+            archs += package_archs
+
+        archs += allarch_archs
+        return ' '.join(archs)
+
     def _configure_dnf(self):
         # libsolv handles 'noarch' internally, we don't need to specify it explicitly
-        archs = [i for i in reversed(self.archs.split()) if i not in ["any", "all", "noarch"]]
+        archs = [i for i in self.archs.split() if i not in ["any", "all", "noarch"]]
         # This prevents accidental matching against libsolv's built-in policies
         if len(archs) <= 1:
             archs = archs + ["bogusarch"]
@@ -706,6 +753,7 @@ class RpmPM(PackageManager):
                              "--setopt=logdir=%s" % (self.d.getVar('T'))
                             ]
         cmd = [dnf_cmd] + standard_dnf_args + dnf_args
+        bb.note('Running %s' % ' '.join(cmd))
         try:
             output = subprocess.check_output(cmd,stderr=subprocess.STDOUT).decode("utf-8")
             if print_output:
