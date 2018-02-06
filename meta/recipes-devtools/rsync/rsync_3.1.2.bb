@@ -5,6 +5,7 @@ SRC_URI += "file://makefile-no-rebuild.patch \
             file://CVE-2017-17433.patch \
             file://CVE-2017-17434.patch \
             file://CVE-2017-17434-2.patch \
+            file://CVE-2018-5764.patch \
 "
 
 SRC_URI[md5sum] = "0f758d7e000c0f7f7d3792610fad70cb"
