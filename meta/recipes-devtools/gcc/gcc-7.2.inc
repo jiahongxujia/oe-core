@@ -79,7 +79,6 @@ SRC_URI = "\
            ${BACKPORTS} \
 "
 BACKPORTS = "\
-           file://TCWRLGCC-296.patch \
 "
 SRC_URI[md5sum] = "ff370482573133a7fcdd96cd2f552292"
 SRC_URI[sha256sum] = "1cf7adf8ff4b5aa49041c8734bbcf1ad18cc4c94d0029aae0f4e48841088479a"
