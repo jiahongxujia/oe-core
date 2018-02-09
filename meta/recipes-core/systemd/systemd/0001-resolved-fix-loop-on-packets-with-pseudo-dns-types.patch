@@ -1,0 +1,46 @@
+From 30d1e722c90b77bf82ec24ce67a658089ce71925 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Zbigniew=20J=C4=99drzejewski-Szmek?= <zbyszek@in.waw.pl>
+Date: Mon, 6 Nov 2017 07:15:50 +0000
+Subject: [PATCH] resolved: fix loop on packets with pseudo dns types
+
+Reported by Karim Hossen & Thomas Imbert from Sogeti ESEC R&D.
+
+https://bugs.launchpad.net/ubuntu/+source/systemd/+bug/1725351
+
+This patch comes from https://github.com/systemd/systemd.git,
+the commit is 9f939335a07085aa9a9663efd1dca06ef6405d62.
+
+Upstream-Status: Backport
+
+Signed-off-by: Wenlin Kang <wenlin.kang@windriver.com>
+---
+ src/resolve/resolved-dns-packet.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/resolve/resolved-dns-packet.c b/src/resolve/resolved-dns-packet.c
+index 2c85138a2..f419b7471 100644
+--- a/src/resolve/resolved-dns-packet.c
++++ b/src/resolve/resolved-dns-packet.c
+@@ -1448,7 +1448,7 @@ static int dns_packet_read_type_window(DnsPacket *p, Bitmap **types, size_t *sta
+ 
+                 found = true;
+ 
+-                while (bitmask) {
++                for (; bitmask; bit++, bitmask >>= 1)
+                         if (bitmap[i] & bitmask) {
+                                 uint16_t n;
+ 
+@@ -1462,10 +1462,6 @@ static int dns_packet_read_type_window(DnsPacket *p, Bitmap **types, size_t *sta
+                                 if (r < 0)
+                                         return r;
+                         }
+-
+-                        bit++;
+-                        bitmask >>= 1;
+-                }
+         }
+ 
+         if (!found)
+-- 
+2.11.0
+
