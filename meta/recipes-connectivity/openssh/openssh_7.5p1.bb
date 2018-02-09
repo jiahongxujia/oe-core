@@ -29,6 +29,7 @@ SRC_URI = "http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${PV}.tar
            file://0001-openssh-Fix-syntax-error-on-x32.patch \
            file://sshd_check_keys \
            file://restore-tcp-wrappers.patch \
+           file://openssh-CVE-2017-15906.patch \
            "
 
 PAM_SRC_URI = "file://sshd"
