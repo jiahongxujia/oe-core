@@ -36,6 +36,7 @@ SRC_URI = "http://wiki.qemu-project.org/download/${BP}.tar.bz2 \
            file://qemu-CVE-2017-16845.patch \
            file://qemu-CVE-2017-15268.patch \
            file://qemu-CVE-2017-15038.patch \
+           file://qemu-CVE-2017-15289.patch \
            "
 UPSTREAM_CHECK_REGEX = "qemu-(?P<pver>\d+\..*)\.tar"
 
