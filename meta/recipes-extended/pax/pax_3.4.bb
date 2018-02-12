@@ -14,7 +14,7 @@ PR = "r2"
 
 DEPENDS_append_libc-musl = " fts "
 
-SRC_URI = "http://pkgs.fedoraproject.org/repo/pkgs/${BPN}/${BP}.tar.bz2/fbd9023b590b45ac3ade95870702a0d6/${BP}.tar.bz2 \
+SRC_URI = "http://src.fedoraproject.org/repo/pkgs/${BPN}/${BP}.tar.bz2/fbd9023b590b45ac3ade95870702a0d6/${BP}.tar.bz2 \
            file://fix_for_compile_with_gcc-4.6.0.patch \
            file://pax-3.4_fix_for_x32.patch \
            file://0001-include-sys-sysmacros.h-for-major-minor-definitions.patch \
