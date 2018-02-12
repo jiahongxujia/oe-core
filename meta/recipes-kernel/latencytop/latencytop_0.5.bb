@@ -10,7 +10,7 @@ DEPENDS = "virtual/libintl ncurses glib-2.0"
 
 PR = "r3"
 
-SRC_URI = "http://pkgs.fedoraproject.org/repo/pkgs/${BPN}/${BP}.tar.gz/73bb3371c6ee0b0e68e25289027e865c/${BP}.tar.gz \
+SRC_URI = "http://src.fedoraproject.org/repo/pkgs/${BPN}/${BP}.tar.gz/73bb3371c6ee0b0e68e25289027e865c/${BP}.tar.gz \
             file://latencytop-makefile.patch \
             file://latencytop-fsync.patch \
             file://0001-Rectify-the-function-signatures-to-fix-prototype-mis.patch \
