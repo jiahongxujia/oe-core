@@ -1,0 +1,817 @@
+From 6275db8ea9d59a06391c2d6c633d139b550d6e95 Mon Sep 17 00:00:00 2001
+From: Ovidiu Panait <ovidiu.panait@windriver.com>
+Date: Mon, 12 Feb 2018 10:58:01 +0000
+Subject: [PATCH] Import upstream patch 20170722
+
+20170722
+	+ improve test-packages for ncurses-examples and AdaCurses for lintian
+	+ modify logic for endwin-state to be able to detect the case where
+	  the screen was never initialized, using that to trigger a flush of
+	  ncurses' buffer for mvcur, e.g., in test/dots_mvcur.c for the
+	  term-driver configuration.
+	+ add dependency upon ncurses_cfg.h to a few other internal header
+	  files to allow each to be compiled separately.
+	+ add dependency upon ncurses_cfg.h to tic's header-files; any program
+	  using tic-library will have to supply this file.  Legacy tack
+	  versions supply this file; ongoing tack development has dropped the
+	  dependency upon tic-library and new releases will not be affected.
+
+Upstream-Status: Backport
+CVE: CVE-2017-13733
+
+Signed-off-by: Ovidiu Panait <ovidiu.panait@windriver.com>
+---
+ Ada95/package/debian/rules       |  8 ++++++--
+ NEWS                             | 15 +++++++++++++-
+ VERSION                          |  2 +-
+ include/MKparametrized.sh        |  7 +++++--
+ include/hashed_db.h              |  4 +++-
+ include/nc_alloc.h               |  7 +++++--
+ include/nc_mingw.h               |  8 +++++---
+ include/nc_panel.h               |  7 +++++--
+ include/nc_termios.h             |  6 ++++--
+ include/nc_tparm.h               |  7 +++++--
+ include/ncurses_cfg.hin          |  7 +++++--
+ include/ncurses_mingw.h          |  7 +++----
+ include/tic.h                    |  4 +++-
+ ncurses/base/lib_endwin.c        |  8 ++++----
+ ncurses/base/lib_isendwin.c      |  6 +++---
+ ncurses/base/lib_newterm.c       |  4 ++--
+ ncurses/curses.priv.h            | 12 ++++++++++--
+ ncurses/tty/lib_mvcur.c          | 42 +++++++++++++++++++++++++++-------------
+ ncurses/tty/lib_tstp.c           | 10 ++++++----
+ ncurses/tty/tty_update.c         |  9 +++++----
+ ncurses/win32con/win_driver.c    |  6 +++---
+ package/debian-mingw/changelog   |  4 ++--
+ package/debian-mingw64/changelog |  4 ++--
+ package/debian/changelog         |  4 ++--
+ package/mingw-ncurses.spec       |  2 +-
+ package/ncurses.spec             |  2 +-
+ test/package/debian/rules        |  8 ++++++--
+ 27 files changed, 140 insertions(+), 70 deletions(-)
+
+diff --git a/Ada95/package/debian/rules b/Ada95/package/debian/rules
+index 5805f8b7..708d3eb2 100755
+--- a/Ada95/package/debian/rules
++++ b/Ada95/package/debian/rules
+@@ -14,7 +14,9 @@ DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+ TARGET_DIR = $(CURDIR)/debian/adacurses
+ SAMPLE_DIR = $(TARGET_DIR)/usr/bin/AdaCurses
+ 
+-CFLAGS =
++CFLAGS   = $(shell dpkg-buildflags --get CFLAGS) $(CC_NORMAL)
++CPPFLAGS = $(shell dpkg-buildflags --get CPPFLAGS)
++LDFLAGS  = $(shell dpkg-buildflags --get LDFLAGS)
+ 
+ ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+         CFLAGS += -O0
+@@ -30,7 +32,9 @@ configure: configure-stamp
+ configure-stamp:
+ 	dh_testdir
+ 
+-	CFLAGS="$(CFLAGS)" ./configure \
++	CFLAGS="$(CFLAGS)" \
++	CPPFLAGS="$(CPPFLAGS)" \
++	LDFLAGS="$(LDFLAGS)" ./configure \
+ 		--host=$(DEB_HOST_GNU_TYPE) \
+ 		--build=$(DEB_BUILD_GNU_TYPE) \
+ 		--prefix=/usr \
+diff --git a/NEWS b/NEWS
+index feeb7e9c..d237b6fa 100644
+--- a/NEWS
++++ b/NEWS
+@@ -25,7 +25,7 @@
+ -- sale, use or other dealings in this Software without prior written        --
+ -- authorization.                                                            --
+ -------------------------------------------------------------------------------
+--- $Id: NEWS,v 1.2888 2017/07/15 22:29:41 tom Exp $
++-- $Id: NEWS,v 1.2893 2017/07/22 23:56:31 tom Exp $
+ -------------------------------------------------------------------------------
+ 
+ This is a log of changes that ncurses has gone through since Zeyd started
+@@ -45,6 +45,19 @@ See the AUTHORS file for the corresponding full names.
+ Changes through 1.9.9e did not credit all contributions;
+ it is not possible to add this information.
+ 
++20170722
++	+ improve test-packages for ncurses-examples and AdaCurses for lintian
++	+ modify logic for endwin-state to be able to detect the case where
++	  the screen was never initialized, using that to trigger a flush of
++	  ncurses' buffer for mvcur, e.g., in test/dots_mvcur.c for the
++	  term-driver configuration.
++	+ add dependency upon ncurses_cfg.h to a few other internal header
++	  files to allow each to be compiled separately.
++	+ add dependency upon ncurses_cfg.h to tic's header-files; any program
++	  using tic-library will have to supply this file.  Legacy tack
++	  versions supply this file; ongoing tack development has dropped the
++	  dependency upon tic-library and new releases will not be affected.
++
+ 20170715
+ 	+ modify command-line parameters for "convert" used in picsmap to work
+ 	  with ImageMagick 6.8 and newer.
+diff --git a/VERSION b/VERSION
+index 5a64f676..ddfc4dc1 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5:0:9	6.0	20170715
++5:0:9	6.0	20170722
+diff --git a/include/MKparametrized.sh b/include/MKparametrized.sh
+index 3ce5d9c9..c6908b95 100755
+--- a/include/MKparametrized.sh
++++ b/include/MKparametrized.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ ##############################################################################
+-# Copyright (c) 1998-2006,2014 Free Software Foundation, Inc.                #
++# Copyright (c) 1998-2014,2017 Free Software Foundation, Inc.                #
+ #                                                                            #
+ # Permission is hereby granted, free of charge, to any person obtaining a    #
+ # copy of this software and associated documentation files (the "Software"), #
+@@ -26,7 +26,7 @@
+ # use or other dealings in this Software without prior written               #
+ # authorization.                                                             #
+ ##############################################################################
+-# $Id: MKparametrized.sh,v 1.7 2014/05/24 15:07:19 tom Exp $
++# $Id: MKparametrized.sh,v 1.8 2017/07/22 16:32:27 tom Exp $
+ #
+ # MKparametrized.sh -- generate indirection vectors for various sort methods
+ #
+@@ -35,6 +35,8 @@
+ #
+ CAPS="${1-Caps}"
+ cat <<EOF
++#ifndef PARAMETRIZED_H
++#define PARAMETRIZED_H 1
+ /*
+  * parametrized.h --- is a termcap capability parametrized?
+  *
+@@ -61,3 +63,4 @@ $0 ~ /#[0-9]/		{print "1,\t/* ", $2, " */"; count++; next;}
+ END			{printf("} /* %d entries */;\n\n", count);}
+ '
+ 
++echo "#endif /* PARAMETRIZED_H */"
+diff --git a/include/hashed_db.h b/include/hashed_db.h
+index fc6f5366..396a7cd8 100644
+--- a/include/hashed_db.h
++++ b/include/hashed_db.h
+@@ -31,12 +31,14 @@
+  ****************************************************************************/
+ 
+ /*
+- * $Id: hashed_db.h,v 1.7 2017/02/26 22:59:23 Andre.Sa Exp $
++ * $Id: hashed_db.h,v 1.8 2017/07/22 16:22:49 tom Exp $
+  */
+ 
+ #ifndef HASHED_DB_H
+ #define HASHED_DB_H 1
+ 
++#include <ncurses_cfg.h>
++
+ #include <curses.h>
+ 
+ #if USE_HASHED_DB
+diff --git a/include/nc_alloc.h b/include/nc_alloc.h
+index 356f6056..76a82cf3 100644
+--- a/include/nc_alloc.h
++++ b/include/nc_alloc.h
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2012,2013 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2013,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -29,12 +29,15 @@
+ /****************************************************************************
+  *  Author: Thomas E. Dickey                    1996-on                     *
+  ****************************************************************************/
+-/* $Id: nc_alloc.h,v 1.22 2013/01/26 21:56:51 tom Exp $ */
++/* $Id: nc_alloc.h,v 1.23 2017/07/22 16:59:37 tom Exp $ */
+ 
+ #ifndef NC_ALLOC_included
+ #define NC_ALLOC_included 1
+ /* *INDENT-OFF* */
+ 
++#include <ncurses_cfg.h>
++#include <curses.h>
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+diff --git a/include/nc_mingw.h b/include/nc_mingw.h
+index 32470034..ab30c09f 100644
+--- a/include/nc_mingw.h
++++ b/include/nc_mingw.h
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 2008-2009,2010 Free Software Foundation, Inc.              *
++ * Copyright (c) 2008-2010,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -28,14 +28,14 @@
+ 
+ /****************************************************************************
+  * Author: Thomas Dickey, 2008-on                                           * 
+- *                                                                          *
+  ****************************************************************************/
+ 
+-/* $Id: nc_mingw.h,v 1.3 2010/09/25 22:16:12 juergen Exp $ */
++/* $Id: nc_mingw.h,v 1.4 2017/07/22 17:06:38 tom Exp $ */
+ 
+ #ifndef NC_MINGW_H
+ #define NC_MINGW_H 1
+ 
++#ifdef __MINGW32__
+ #ifdef WINVER
+ #  if WINVER < 0x0501
+ #    error WINVER must at least be 0x0501
+@@ -66,4 +66,6 @@ extern int _nc_gettimeofday(struct timeval *, void *);
+ #define wcwidth(ucs) _nc_wcwidth(ucs)
+ extern int _nc_wcwidth(wchar_t);
+ 
++#endif /* __MINGW32__ */
++
+ #endif /* NC_MINGW_H */
+diff --git a/include/nc_panel.h b/include/nc_panel.h
+index 6a9ffea3..687c5713 100644
+--- a/include/nc_panel.h
++++ b/include/nc_panel.h
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2008,2009 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2009,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -32,7 +32,7 @@
+  ****************************************************************************/
+ 
+ /*
+- * $Id: nc_panel.h,v 1.7 2009/07/04 18:20:02 tom Exp $
++ * $Id: nc_panel.h,v 1.9 2017/07/22 17:06:03 tom Exp $
+  *
+  *	nc_panel.h
+  *
+@@ -43,6 +43,9 @@
+ #ifndef NC_PANEL_H
+ #define NC_PANEL_H 1
+ 
++#include <ncurses_cfg.h>
++#include <curses.h>
++
+ #ifdef __cplusplus
+ extern "C"
+ {
+diff --git a/include/nc_termios.h b/include/nc_termios.h
+index 2217f073..5efab40e 100644
+--- a/include/nc_termios.h
++++ b/include/nc_termios.h
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 2011,2014 Free Software Foundation, Inc.                   *
++ * Copyright (c) 2011-2014,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -30,11 +30,13 @@
+  *  Author: Thomas E. Dickey                        2011                    *
+  ****************************************************************************/
+ 
+-/* $Id: nc_termios.h,v 1.3 2014/05/03 19:40:10 juergen Exp $ */
++/* $Id: nc_termios.h,v 1.5 2017/07/23 00:02:08 tom Exp $ */
+ 
+ #ifndef NC_TERMIOS_included
+ #define NC_TERMIOS_included 1
+ 
++#include <ncurses_cfg.h>
++
+ #if HAVE_TERMIOS_H && HAVE_TCGETATTR
+ 
+ #else /* !HAVE_TERMIOS_H */
+diff --git a/include/nc_tparm.h b/include/nc_tparm.h
+index 248f6c07..ed10173a 100644
+--- a/include/nc_tparm.h
++++ b/include/nc_tparm.h
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 2006-2010,2012 Free Software Foundation, Inc.              *
++ * Copyright (c) 2006-2012,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -30,11 +30,14 @@
+  *  Author: Thomas E. Dickey                        2006                    *
+  ****************************************************************************/
+ 
+-/* $Id: nc_tparm.h,v 1.6 2012/02/18 21:34:42 tom Exp $ */
++/* $Id: nc_tparm.h,v 1.8 2017/07/22 17:09:46 tom Exp $ */
+ 
+ #ifndef NC_TPARM_included
+ #define NC_TPARM_included 1
+ 
++#include <ncurses_cfg.h>
++#include <curses.h>
++
+ /*
+  * Cast parameters past the formatting-string for tparm() to match the
+  * assumption of the varargs code.
+diff --git a/include/ncurses_cfg.hin b/include/ncurses_cfg.hin
+index 391a6928..91270d06 100644
+--- a/include/ncurses_cfg.hin
++++ b/include/ncurses_cfg.hin
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2015,2016 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2016,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -30,7 +30,10 @@
+  *  Author: Thomas E. Dickey      1997-on                                   *
+  ****************************************************************************/
+ /*
+- * $Id: ncurses_cfg.hin,v 1.9 2016/03/05 21:45:24 tom Exp $
++ * $Id: ncurses_cfg.hin,v 1.10 2017/07/22 17:01:10 tom Exp $
++ *
++ * Both ncurses_cfg.h and ncurses_def.h are internal header-files used when
++ * building ncurses.
+  *
+  * This is a template-file used to generate the "ncurses_cfg.h" file.
+  *
+diff --git a/include/ncurses_mingw.h b/include/ncurses_mingw.h
+index 2bbad76f..52473b2f 100644
+--- a/include/ncurses_mingw.h
++++ b/include/ncurses_mingw.h
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2011,2014 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2014,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -28,17 +28,16 @@
+ 
+ /****************************************************************************
+  * Author: Juergen Pfeifer, 2008-on                                         * 
+- *                                                                          *
+  ****************************************************************************/
+ 
+-/* $Id: ncurses_mingw.h,v 1.3 2014/05/03 19:40:19 juergen Exp $ */
++/* $Id: ncurses_mingw.h,v 1.4 2017/07/22 17:06:49 tom Exp $ */
+ 
+ /*
+  * This is a placeholder up to now and describes what needs to be implemented
+  * to support I/O to external terminals with ncurses on the Windows OS.
+  */
+ 
+-#if __MINGW32__
++#ifdef __MINGW32__
+ #ifndef _NC_MINGWH
+ #define _NC_MINGWH
+ 
+diff --git a/include/tic.h b/include/tic.h
+index 126515ea..ec6cd43a 100644
+--- a/include/tic.h
++++ b/include/tic.h
+@@ -33,7 +33,7 @@
+  ****************************************************************************/
+ 
+ /*
+- * $Id: tic.h,v 1.73 2017/03/18 17:14:19 tom Exp $
++ * $Id: tic.h,v 1.74 2017/07/22 16:25:10 tom Exp $
+  *	tic.h - Global variables and structures for the terminfo compiler.
+  */
+ 
+@@ -44,6 +44,8 @@
+ extern "C" {
+ #endif
+ 
++#include <ncurses_cfg.h>
++
+ #include <curses.h>	/* for the _tracef() prototype, ERR/OK, bool defs */
+ 
+ /*
+diff --git a/ncurses/base/lib_endwin.c b/ncurses/base/lib_endwin.c
+index 9ebf7693..c3ba37a6 100644
+--- a/ncurses/base/lib_endwin.c
++++ b/ncurses/base/lib_endwin.c
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2009,2014 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2014,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -42,7 +42,7 @@
+ 
+ #include <curses.priv.h>
+ 
+-MODULE_ID("$Id: lib_endwin.c,v 1.23 2014/03/08 20:32:59 tom Exp $")
++MODULE_ID("$Id: lib_endwin.c,v 1.24 2017/07/22 23:29:40 tom Exp $")
+ 
+ NCURSES_EXPORT(int)
+ NCURSES_SP_NAME(endwin) (NCURSES_SP_DCL0)
+@@ -55,11 +55,11 @@ NCURSES_SP_NAME(endwin) (NCURSES_SP_DCL0)
+ #ifdef USE_TERM_DRIVER
+ 	TERMINAL_CONTROL_BLOCK *TCB = TCBOf(SP_PARM);
+ 
+-	SP_PARM->_endwin = TRUE;
++	SP_PARM->_endwin = ewSuspend;
+ 	if (TCB && TCB->drv && TCB->drv->td_scexit)
+ 	    TCB->drv->td_scexit(SP_PARM);
+ #else
+-	SP_PARM->_endwin = TRUE;
++	SP_PARM->_endwin = ewSuspend;
+ 	SP_PARM->_mouse_wrap(SP_PARM);
+ 	_nc_screen_wrap();
+ 	_nc_mvcur_wrap();	/* wrap up cursor addressing */
+diff --git a/ncurses/base/lib_isendwin.c b/ncurses/base/lib_isendwin.c
+index 923e35bf..d8507fa3 100644
+--- a/ncurses/base/lib_isendwin.c
++++ b/ncurses/base/lib_isendwin.c
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2000,2009 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2009,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -42,14 +42,14 @@
+ 
+ #include <curses.priv.h>
+ 
+-MODULE_ID("$Id: lib_isendwin.c,v 1.7 2009/02/15 00:36:24 tom Exp $")
++MODULE_ID("$Id: lib_isendwin.c,v 1.8 2017/07/22 23:29:49 tom Exp $")
+ 
+ NCURSES_EXPORT(bool)
+ NCURSES_SP_NAME(isendwin) (NCURSES_SP_DCL0)
+ {
+     if (SP_PARM == NULL)
+ 	return FALSE;
+-    return SP_PARM->_endwin;
++    return (SP_PARM->_endwin == ewSuspend);
+ }
+ 
+ #if NCURSES_SP_FUNCS
+diff --git a/ncurses/base/lib_newterm.c b/ncurses/base/lib_newterm.c
+index b8c8ab8b..a65d3b2d 100644
+--- a/ncurses/base/lib_newterm.c
++++ b/ncurses/base/lib_newterm.c
+@@ -48,7 +48,7 @@
+ 
+ #include <tic.h>
+ 
+-MODULE_ID("$Id: lib_newterm.c,v 1.99 2017/07/01 18:14:07 tom Exp $")
++MODULE_ID("$Id: lib_newterm.c,v 1.100 2017/07/22 23:19:00 tom Exp $")
+ 
+ #ifdef USE_TERM_DRIVER
+ #define NumLabels      InfoOf(SP_PARM).numlabels
+@@ -287,7 +287,7 @@ NCURSES_SP_NAME(newterm) (NCURSES_SP_DCLx
+ #else
+ 	    SP_PARM->_use_meta = FALSE;
+ #endif
+-	    SP_PARM->_endwin = FALSE;
++	    SP_PARM->_endwin = ewInitial;
+ #ifndef USE_TERM_DRIVER
+ 	    /*
+ 	     * Check whether we can optimize scrolling under dumb terminals in
+diff --git a/ncurses/curses.priv.h b/ncurses/curses.priv.h
+index df9fe2ea..839d5b35 100644
+--- a/ncurses/curses.priv.h
++++ b/ncurses/curses.priv.h
+@@ -34,7 +34,7 @@
+  ****************************************************************************/
+ 
+ /*
+- * $Id: curses.priv.h,v 1.581 2017/07/15 20:17:01 tom Exp $
++ * $Id: curses.priv.h,v 1.583 2017/07/22 23:19:00 tom Exp $
+  *
+  *	curses.priv.h
+  *
+@@ -1046,6 +1046,12 @@ typedef struct {
+ 
+ extern NCURSES_EXPORT_VAR(NCURSES_PRESCREEN) _nc_prescreen;
+ 
++typedef enum {
++    ewInitial = 0,
++    ewRunning,
++    ewSuspend
++} ENDWIN;
++
+ /*
+  * The SCREEN structure.
+  */
+@@ -1355,7 +1361,7 @@ extern NCURSES_EXPORT_VAR(SIG_ATOMIC_T) _nc_have_sigwinch;
+     sp->_cbreak = 0;                            \
+     sp->_echo = TRUE;                           \
+     sp->_fifohead = -1;                         \
+-    sp->_endwin = TRUE;                         \
++    sp->_endwin = ewSuspend;                    \
+     sp->_cursor = -1;                           \
+     SP_INIT_WINDOWLIST(sp);                     \
+     sp->_outch = NCURSES_OUTC_FUNC;             \
+@@ -1473,6 +1479,8 @@ extern NCURSES_EXPORT_VAR(SIG_ATOMIC_T) _nc_have_sigwinch;
+ 		       && (a).chars[3] == (b).chars[3] \
+ 		       && (a).chars[4] == (b).chars[4] \
+ 			if_EXT_COLORS(&& (a).ext_color == (b).ext_color))
++#elif CCHARW_MAX > 0
++#error Inconsistent values for CCHARW_MAX
+ #else
+ #define CharEq(a,b)	(!memcmp(&(a), &(b), sizeof(a)))
+ #endif
+diff --git a/ncurses/tty/lib_mvcur.c b/ncurses/tty/lib_mvcur.c
+index d75f6948..691ecc3e 100644
+--- a/ncurses/tty/lib_mvcur.c
++++ b/ncurses/tty/lib_mvcur.c
+@@ -159,7 +159,7 @@
+ #define CUR SP_TERMTYPE
+ #endif
+ 
+-MODULE_ID("$Id: lib_mvcur.c,v 1.141 2017/04/07 00:34:22 tom Exp $")
++MODULE_ID("$Id: lib_mvcur.c,v 1.144 2017/07/22 23:59:07 tom Exp $")
+ 
+ #define WANT_CHAR(sp, y, x) NewScreen(sp)->_line[y].text[x]	/* desired state */
+ 
+@@ -450,8 +450,8 @@ NCURSES_SP_NAME(_nc_mvcur_init) (NCURSES_SP_DCL0)
+ 
+     /*
+      * A different, possibly better way to arrange this would be to set the
+-     * SCREEN's _endwin to TRUE at window initialization time and let this be
+-     * called by doupdate's return-from-shellout code.
++     * SCREEN's _endwin at window initialization time and let this be called by
++     * doupdate's return-from-shellout code.
+      */
+     NCURSES_SP_NAME(_nc_mvcur_resume) (NCURSES_SP_ARG);
+ }
+@@ -1056,9 +1056,18 @@ NCURSES_SP_NAME(_nc_mvcur) (NCURSES_SP_DCLx
+ 			    int yold, int xold,
+ 			    int ynew, int xnew)
+ {
+-    return _nc_real_mvcur(NCURSES_SP_ARGx yold, xold, ynew, xnew,
+-			  NCURSES_SP_NAME(_nc_outch),
+-			  TRUE);
++    int rc;
++    rc = _nc_real_mvcur(NCURSES_SP_ARGx yold, xold, ynew, xnew,
++			NCURSES_SP_NAME(_nc_outch),
++			TRUE);
++    /*
++     * With the terminal-driver, we cannot distinguish between internal and
++     * external calls.  Flush the output if the screen has not been
++     * initialized, e.g., when used from low-level terminfo programs.
++     */
++    if ((SP_PARM != 0) && (SP_PARM->_endwin == ewInitial))
++	NCURSES_SP_NAME(_nc_flush) (NCURSES_SP_ARG);
++    return rc;
+ }
+ 
+ #if NCURSES_SP_FUNCS
+@@ -1077,11 +1086,16 @@ _nc_mvcur(int yold, int xold,
+ NCURSES_EXPORT(int)
+ TINFO_MVCUR(NCURSES_SP_DCLx int yold, int xold, int ynew, int xnew)
+ {
+-    return _nc_real_mvcur(NCURSES_SP_ARGx
+-			  yold, xold,
+-			  ynew, xnew,
+-			  NCURSES_SP_NAME(_nc_outch),
+-			  TRUE);
++    int rc;
++    rc = _nc_real_mvcur(NCURSES_SP_ARGx
++			yold, xold,
++			ynew, xnew,
++			NCURSES_SP_NAME(_nc_outch),
++			TRUE);
++    if ((SP_PARM != 0) && (SP_PARM->_endwin == ewInitial))
++	NCURSES_SP_NAME(_nc_flush) (NCURSES_SP_ARG);
++    NCURSES_SP_NAME(_nc_flush) (NCURSES_SP_ARG);
++    return rc;
+ }
+ 
+ #else /* !USE_TERM_DRIVER */
+@@ -1197,8 +1211,10 @@ main(int argc GCC_UNUSED, char *argv[]GCC_UNUSED)
+ 	int fy, fx, ty, tx, n, i;
+ 	char buf[BUFSIZ], capname[BUFSIZ];
+ 
+-	(void) fputs("> ", stdout);
+-	(void) fgets(buf, sizeof(buf), stdin);
++	if (fputs("> ", stdout) == EOF)
++	    break;
++	if (fgets(buf, sizeof(buf), stdin) == 0)
++	    break;
+ 
+ 	if (buf[0] == '?') {
+ 	    (void) puts("?                -- display this help message");
+diff --git a/ncurses/tty/lib_tstp.c b/ncurses/tty/lib_tstp.c
+index 8624b760..42d5ccb4 100644
+--- a/ncurses/tty/lib_tstp.c
++++ b/ncurses/tty/lib_tstp.c
+@@ -1,5 +1,5 @@
+ /****************************************************************************
+- * Copyright (c) 1998-2013,2014 Free Software Foundation, Inc.              *
++ * Copyright (c) 1998-2014,2017 Free Software Foundation, Inc.              *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+@@ -42,7 +42,7 @@
+ 
+ #include <SigAction.h>
+ 
+-MODULE_ID("$Id: lib_tstp.c,v 1.48 2014/04/26 18:47:35 juergen Exp $")
++MODULE_ID("$Id: lib_tstp.c,v 1.49 2017/07/22 23:29:58 tom Exp $")
+ 
+ #if defined(SIGTSTP) && (HAVE_SIGACTION || HAVE_SIGVEC)
+ #define USE_SIGTSTP 1
+@@ -155,8 +155,10 @@ handle_SIGTSTP(int dummy GCC_UNUSED)
+      * taken ownership of the tty and modified the settings when our
+      * parent was stopped before us, and we would likely pick up the
+      * settings already modified by the shell.
++     *
++     * Don't do this if we're not in curses -
+      */
+-    if (sp != 0 && !sp->_endwin)	/* don't do this if we're not in curses */
++    if (sp != 0 && (sp->_endwin == ewRunning))
+ #if HAVE_TCGETPGRP
+ 	if (tcgetpgrp(STDIN_FILENO) == getpgrp())
+ #endif
+@@ -273,7 +275,7 @@ handle_SIGINT(int sig)
+ 		set_term(scan);
+ 		NCURSES_SP_NAME(endwin) (NCURSES_SP_ARG);
+ 		if (sp)
+-		    sp->_endwin = FALSE;	/* in case of reuse */
++		    sp->_endwin = ewInitial;	/* in case of reuse */
+ 	    }
+ 	}
+     }
+diff --git a/ncurses/tty/tty_update.c b/ncurses/tty/tty_update.c
+index 482d66da..c08f853f 100644
+--- a/ncurses/tty/tty_update.c
++++ b/ncurses/tty/tty_update.c
+@@ -84,7 +84,7 @@
+ 
+ #include <ctype.h>
+ 
+-MODULE_ID("$Id: tty_update.c,v 1.289 2017/06/30 11:47:01 tom Exp $")
++MODULE_ID("$Id: tty_update.c,v 1.290 2017/07/22 23:30:28 tom Exp $")
+ 
+ /*
+  * This define controls the line-breakout optimization.  Every once in a
+@@ -816,7 +816,8 @@ TINFO_DOUPDATE(NCURSES_SP_DCL0)
+ 	SP_PARM->_fifohold--;
+ 
+ #if USE_SIZECHANGE
+-    if (SP_PARM->_endwin || _nc_handle_sigwinch(SP_PARM)) {
++    if ((SP_PARM->_endwin == ewRunning)
++	|| _nc_handle_sigwinch(SP_PARM)) {
+ 	/*
+ 	 * This is a transparent extension:  XSI does not address it,
+ 	 * and applications need not know that ncurses can do it.
+@@ -829,7 +830,7 @@ TINFO_DOUPDATE(NCURSES_SP_DCL0)
+     }
+ #endif
+ 
+-    if (SP_PARM->_endwin) {
++    if (SP_PARM->_endwin == ewSuspend) {
+ 
+ 	T(("coming back from shell mode"));
+ 	NCURSES_SP_NAME(reset_prog_mode) (NCURSES_SP_ARG);
+@@ -838,7 +839,7 @@ TINFO_DOUPDATE(NCURSES_SP_DCL0)
+ 	NCURSES_SP_NAME(_nc_screen_resume) (NCURSES_SP_ARG);
+ 	SP_PARM->_mouse_resume(SP_PARM);
+ 
+-	SP_PARM->_endwin = FALSE;
++	SP_PARM->_endwin = ewRunning;
+     }
+ #if USE_TRACE_TIMES
+     /* zero the metering machinery */
+diff --git a/ncurses/win32con/win_driver.c b/ncurses/win32con/win_driver.c
+index 7f4dc60b..2a6ed00e 100644
+--- a/ncurses/win32con/win_driver.c
++++ b/ncurses/win32con/win_driver.c
+@@ -54,7 +54,7 @@
+ 
+ #define CUR TerminalType(my_term).
+ 
+-MODULE_ID("$Id: win_driver.c,v 1.58 2017/04/14 09:11:00 tom Exp $")
++MODULE_ID("$Id: win_driver.c,v 1.59 2017/07/22 21:10:28 tom Exp $")
+ 
+ #ifndef __GNUC__
+ #  error We need GCC to compile for MinGW
+@@ -494,7 +494,7 @@ wcon_doupdate(TERMINAL_CONTROL_BLOCK * TCB)
+ 	   CurScreen(sp)->_clear,
+ 	   NewScreen(sp)->_clear));
+ 
+-	if (SP_PARM->_endwin) {
++	if (SP_PARM->_endwin == ewSuspend) {
+ 
+ 	    T(("coming back from shell mode"));
+ 	    NCURSES_SP_NAME(reset_prog_mode) (NCURSES_SP_ARG);
+@@ -503,7 +503,7 @@ wcon_doupdate(TERMINAL_CONTROL_BLOCK * TCB)
+ 	    NCURSES_SP_NAME(_nc_screen_resume) (NCURSES_SP_ARG);
+ 	    SP_PARM->_mouse_resume(SP_PARM);
+ 
+-	    SP_PARM->_endwin = FALSE;
++	    SP_PARM->_endwin = ewRunning;
+ 	}
+ 
+ 	if ((CurScreen(sp)->_clear || NewScreen(sp)->_clear)) {
+diff --git a/package/debian-mingw/changelog b/package/debian-mingw/changelog
+index 88186a4d..2fa5e45c 100644
+--- a/package/debian-mingw/changelog
++++ b/package/debian-mingw/changelog
+@@ -1,8 +1,8 @@
+-ncurses6 (6.0+20170715) unstable; urgency=low
++ncurses6 (6.0+20170722) unstable; urgency=low
+ 
+   * latest weekly patch
+ 
+- -- Thomas E. Dickey <dickey@invisible-island.net>  Wed, 12 Jul 2017 20:15:27 -0400
++ -- Thomas E. Dickey <dickey@invisible-island.net>  Sat, 22 Jul 2017 12:49:12 -0400
+ 
+ ncurses6 (5.9-20131005) unstable; urgency=low
+ 
+diff --git a/package/debian-mingw64/changelog b/package/debian-mingw64/changelog
+index 88186a4d..2fa5e45c 100644
+--- a/package/debian-mingw64/changelog
++++ b/package/debian-mingw64/changelog
+@@ -1,8 +1,8 @@
+-ncurses6 (6.0+20170715) unstable; urgency=low
++ncurses6 (6.0+20170722) unstable; urgency=low
+ 
+   * latest weekly patch
+ 
+- -- Thomas E. Dickey <dickey@invisible-island.net>  Wed, 12 Jul 2017 20:15:27 -0400
++ -- Thomas E. Dickey <dickey@invisible-island.net>  Sat, 22 Jul 2017 12:49:12 -0400
+ 
+ ncurses6 (5.9-20131005) unstable; urgency=low
+ 
+diff --git a/package/debian/changelog b/package/debian/changelog
+index 7a564ec4..5234a4c2 100644
+--- a/package/debian/changelog
++++ b/package/debian/changelog
+@@ -1,8 +1,8 @@
+-ncurses6 (6.0+20170715) unstable; urgency=low
++ncurses6 (6.0+20170722) unstable; urgency=low
+ 
+   * latest weekly patch
+ 
+- -- Thomas E. Dickey <dickey@invisible-island.net>  Wed, 12 Jul 2017 20:15:27 -0400
++ -- Thomas E. Dickey <dickey@invisible-island.net>  Sat, 22 Jul 2017 12:49:12 -0400
+ 
+ ncurses6 (5.9-20120608) unstable; urgency=low
+ 
+diff --git a/package/mingw-ncurses.spec b/package/mingw-ncurses.spec
+index acbb5609..a28fa532 100644
+--- a/package/mingw-ncurses.spec
++++ b/package/mingw-ncurses.spec
+@@ -3,7 +3,7 @@
+ Summary: shared libraries for terminal handling
+ Name: mingw32-ncurses6
+ Version: 6.0
+-Release: 20170715
++Release: 20170722
+ License: X11
+ Group: Development/Libraries
+ Source: ncurses-%{version}-%{release}.tgz
+diff --git a/package/ncurses.spec b/package/ncurses.spec
+index 5c84f17e..fa3a5b26 100644
+--- a/package/ncurses.spec
++++ b/package/ncurses.spec
+@@ -1,7 +1,7 @@
+ Summary: shared libraries for terminal handling
+ Name: ncurses6
+ Version: 6.0
+-Release: 20170715
++Release: 20170722
+ License: X11
+ Group: Development/Libraries
+ Source: ncurses-%{version}-%{release}.tgz
+diff --git a/test/package/debian/rules b/test/package/debian/rules
+index bed7a82a..1598d6fe 100755
+--- a/test/package/debian/rules
++++ b/test/package/debian/rules
+@@ -18,7 +18,9 @@ PACKAGES.arch  = $(NCURSES_PKG) $(NCURSEST_PKG)
+ DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+ DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+ 
+-CFLAGS =
++CFLAGS   = $(shell dpkg-buildflags --get CFLAGS)
++CPPFLAGS = $(shell dpkg-buildflags --get CPPFLAGS)
++LDFLAGS  = $(shell dpkg-buildflags --get LDFLAGS)
+ 
+ ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+         CFLAGS += -O0
+@@ -32,7 +34,9 @@ endif
+ verbose = # -v
+ 
+ configure = \
+-	CFLAGS="$(CFLAGS)" ../../configure \
++	CFLAGS="$(CFLAGS)" \
++	CPPFLAGS="$(CPPFLAGS)" \
++	LDFLAGS="$(LDFLAGS)" ../../configure \
+ 		--host=$(DEB_HOST_GNU_TYPE) \
+ 		--build=$(DEB_BUILD_GNU_TYPE) \
+ 		--prefix=/usr \
+-- 
+2.13.3
+
