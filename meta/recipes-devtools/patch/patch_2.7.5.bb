@@ -1,7 +1,10 @@
 require patch.inc
 LICENSE = "GPLv3"
 
-SRC_URI += "file://0001-Unset-need_charset_alias-when-building-for-musl.patch"
+SRC_URI += "file://0001-Unset-need_charset_alias-when-building-for-musl.patch \
+            file://CVE-2016-10713.patch \
+            file://CVE-2018-6951.patch \
+"
 
 SRC_URI[md5sum] = "ed4d5674ef4543b4eb463db168886dc7"
 SRC_URI[sha256sum] = "7436f5a19f93c3ca83153ce9c5cbe4847e97c5d956e57a220121e741f6e7968f"
