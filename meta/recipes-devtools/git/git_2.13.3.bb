@@ -5,6 +5,15 @@ EXTRA_OECONF += "ac_cv_snprintf_returns_bogus=no \
                  "
 EXTRA_OEMAKE += "NO_GETTEXT=1"
 
+SRC_URI += " \
+    file://git-CVE-2017-14867.patch \
+    file://git-CVE-2017-14867-2.patch \
+    file://git-CVE-2017-14867-3.patch \
+    file://git-CVE-2017-14867-4.patch \
+    file://git-CVE-2017-14867-5.patch \
+    file://git-CVE-2017-14867-6.patch \
+    "
+
 SRC_URI[tarball.md5sum] = "d2dc550f6693ba7e5b16212b2714f59f"
 SRC_URI[tarball.sha256sum] = "1497001772f630d49809e981672edfe3e3ce1a1d18e905cd539c4d2f4dbcd75a"
 SRC_URI[manpages.md5sum] = "3037d11a4f4cdd19435871c267ca48b4"
