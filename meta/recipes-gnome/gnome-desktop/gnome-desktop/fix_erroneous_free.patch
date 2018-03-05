@@ -1,0 +1,26 @@
+--- a/libgnome-desktop/gnome-desktop-thumbnail.c
++++ b/libgnome-desktop/gnome-desktop-thumbnail.c
+@@ -1200,7 +1200,7 @@ save_thumbnail (GdkPixbuf  *pixbuf,
+   char *tmp_path = NULL;
+   int tmp_fd;
+   char mtime_str[21];
+-  struct tm *tmp_mtime = NULL;
++  struct tm tmp_mtime;
+   gboolean ret = FALSE;
+   GError *error = NULL;
+   const char *width, *height;
+@@ -1220,11 +1220,10 @@ save_thumbnail (GdkPixbuf  *pixbuf,
+     goto out;
+   close (tmp_fd);
+ 
+-  tmp_mtime = localtime (&mtime);
+-  if (!tmp_mtime)
++  if (!localtime_r (&mtime,&tmp_mtime))
+     goto out;
+-  strftime (mtime_str, 21, "%s", tmp_mtime);
+-  free (tmp_mtime);
++
++  strftime (mtime_str, 21, "%s", &tmp_mtime);
+   width = gdk_pixbuf_get_option (pixbuf, "tEXt::Thumb::Image::Width");
+   height = gdk_pixbuf_get_option (pixbuf, "tEXt::Thumb::Image::Height");
+ 

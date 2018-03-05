@@ -12,6 +12,7 @@ SRC_URI[archive.sha256sum] = "8fa1de66a6a75963bffc79b01a60434c71237d44c51beca09c
 
 SRC_URI += "file://gnome-desktop-thumbnail-don-t-convert-time_t-to-long.patch \
             file://0001-configure.ac-Remove-gnome-common-macro-calls.patch \
+            file://fix_erroneous_free.patch \
 "
 
 DEPENDS += "intltool-native gsettings-desktop-schemas gconf virtual/libx11 gtk+3 glib-2.0 startup-notification xkeyboard-config iso-codes udev"
