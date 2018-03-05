@@ -31,6 +31,9 @@ SRC_URI = "http://www.xmlsoft.org/sources/libxml2-${PV}.tar.gz;name=libtar \
            file://libxml2-CVE-2017-8872.patch \
            file://0001-Make-ptest-run-the-python-tests-if-python-is-enabled.patch \
            file://CVE-2017-16932.patch \
+           file://CVE-2017-5130.patch \
+           file://CVE-2017-7375.patch \
+           file://CVE-2017-7376.patch \
            "
 
 SRC_URI[libtar.md5sum] = "ae249165c173b1ff386ee8ad676815f5"
