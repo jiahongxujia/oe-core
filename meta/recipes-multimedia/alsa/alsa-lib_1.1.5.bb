@@ -25,6 +25,7 @@ FILES_alsa-server = "${bindir}/*"
 FILES_alsa-conf = "${datadir}/alsa/"
 
 RDEPENDS_libasound = "alsa-conf"
+RPROVIDES_libasound = "alsa-lib"
 
 # alsa-lib gets automatically added to alsa-lib-dev dependencies, but the
 # alsa-lib package doesn't exist. libasound is the real library package.
