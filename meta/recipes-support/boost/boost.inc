@@ -195,6 +195,9 @@ do_install() {
 		fi
 	done
 
+	if [ -e ${D}${libdir}/libboost_python3.so ]; then
+		ln -s libboost_python3.so ${D}${libdir}/libboost_python.so
+	fi
 }
 
 BBCLASSEXTEND = "native nativesdk"
