@@ -172,10 +172,9 @@ NO_GENERIC_LICENSE[Firmware-xc5000] = "LICENCE.xc5000"
 NO_GENERIC_LICENSE[Firmware-xc5000c] = "LICENCE.xc5000c"
 NO_GENERIC_LICENSE[WHENCE] = "WHENCE"
 
-SRCREV_KEEP = "bfeee58b50208808969bb18b7f297683ba581dc1"
 SRCREV = "bf04291309d3169c0ad3b8db52564235bbd08e30"
 PE = "1"
-PV = "0.0+git${SRCREV_KEEP}"
+PV = "0.0+git${SRCPV}"
 
 SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
 
