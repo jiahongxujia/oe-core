@@ -174,7 +174,7 @@ NO_GENERIC_LICENSE[WHENCE] = "WHENCE"
 
 SRCREV = "bf04291309d3169c0ad3b8db52564235bbd08e30"
 PE = "1"
-PV = "0.0+git${SRCPV}"
+PV = "0.0+git0+bfeee58b50"
 
 SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
 
