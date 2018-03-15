@@ -16,6 +16,7 @@ SRC_URI = "${SOURCEFORGE_MIRROR}/${BPN}/${BP}.tar.bz2 \
            file://parallel-make-archives.patch \
            file://lib-Makefile-fix-parallel-issue.patch \
            file://gcc46-compatibility.patch \
+           file://0001-gnu-efi-Don-t-use-extended-registers-on-x86_64.patch \
            "
 
 SRC_URI[md5sum] = "46f633758a8a37db9fd6909fe270c26b"

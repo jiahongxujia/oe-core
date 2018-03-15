@@ -1,0 +1,31 @@
+From c112e8a509daa39f695d27ceb00a57d142c2f1fc Mon Sep 17 00:00:00 2001
+From: Liwei Song <liwei.song@windriver.com>
+Date: Thu, 15 Mar 2018 02:58:12 -0400
+Subject: [PATCH] gnu-efi: Don't use extended registers on x86_64
+
+Some toolchains enable these features by default, but they need
+registers that aren't set up properly in GRUB.
+
+Upstream-Status: Pending
+
+Signed-off-by: Liwei Song <liwei.song@windriver.com>
+---
+ Make.defaults | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Make.defaults b/Make.defaults
+index 16f1fd218487..19f0b1bf29fd 100755
+--- a/Make.defaults
++++ b/Make.defaults
+@@ -114,7 +114,7 @@ ifeq ($(ARCH),x86_64)
+     CPPFLAGS += -DGNU_EFI_USE_MS_ABI --std=c11
+   endif
+ 
+-  CFLAGS += -mno-red-zone
++  CFLAGS += -mno-red-zone -mno-mmx -mno-sse2 -mno-3dnow
+   ifeq ($(HOSTARCH),ia32)
+     ARCH3264 = -m64
+   endif
+-- 
+2.7.4
+
