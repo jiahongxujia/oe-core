@@ -1,0 +1,88 @@
+From: "Deere & Company" <john@johndeere.com>
+Subject: [PATCH] configure to gettext to default with no java and javac. 
+Author: patilashish3@JohnDeere.com, yeatesrichardr@JohnDeere.com
+
+The checksums of gettext were changing based on whether or not java and javac were installed.
+This patch makes gettext recipes independant of Java components.
+
+Upstream-Status: inappropriate [oe-core specific]
+
+Signed-off-by: Luis Ramirez <Luis.Ramirez@windriver.com>
+Signed-off-by: Zhixiong Chi <zhixiong.chi@windriver.com>
+
+Index: gettext-0.19.4/gettext-runtime/configure.ac
+===================================================================
+--- gettext-0.19.4.orig/gettext-runtime/configure.ac	2014-12-09 16:43:44.000000000 +0800
++++ gettext-0.19.4/gettext-runtime/configure.ac	2018-03-07 14:51:57.318227813 +0800
+@@ -35,7 +35,25 @@
+ 
+ gt_JAVA_CHOICE
+ 
+-gt_JAVACOMP([1.3], [1.1])
++dnl replaced gt_JAVACOMP([1.3], [1.1]) with results when no javac is installed
++CONF_JAVAC=
++HAVE_JAVAC_ENVVAR=
++CLASSPATH=
++CLASSPATH_SEPARATOR=:
++HAVE_GCJ_C=
++HAVE_JAVAC=
++HAVE_JIKES=
++HAVE_JAVACOMP=
++
++AC_SUBST([CONF_JAVAC])
++AC_SUBST([HAVE_JAVAC_ENVVAR])
++AC_SUBST([CLASSPATH])
++AC_SUBST([CLASSPATH_SEPARATOR])
++AC_SUBST([HAVE_JAVAC])
++AC_SUBST([HAVE_GCJ_C])
++AC_SUBST([HAVE_JIKES])
++AC_SUBST([HAVE_JAVACOMP])
++
+ AC_CHECK_PROG([JAR], [jar], [jar])
+ if test -n "$HAVE_JAVACOMP" && test -n "$JAR" && test "$JAVA_CHOICE" != no; then
+   BUILDJAVA=yes
+Index: gettext-0.19.4/gettext-tools/configure.ac
+===================================================================
+--- gettext-0.19.4.orig/gettext-tools/configure.ac	2014-12-09 16:43:45.000000000 +0800
++++ gettext-0.19.4/gettext-tools/configure.ac	2018-03-07 14:54:57.654229070 +0800
+@@ -43,8 +43,38 @@
+ fi
+ AC_SUBST([BUILDJAVAEXE])
+ 
+-gt_JAVAEXEC
+-gt_JAVACOMP([1.3])
++dnl replaced gt_JAVAEXEC with results when no java is installed
++CONF_JAVA=
++HAVE_JAVA_ENVVAR=
++HAVE_GIJ=
++HAVE_JAVA=
++HAVE_JRE=
++HAVE_JVIEW=
++AC_SUBST([CONF_JAVA])
++AC_SUBST([HAVE_JAVA_ENVVAR])
++AC_SUBST([HAVE_GIJ])
++AC_SUBST([HAVE_JAVA])
++AC_SUBST([HAVE_JRE])
++AC_SUBST([HAVE_JVIEW])
++
++dnl replaced gt_JAVACOMP([1.3]) with results when no javac is installed
++CONF_JAVAC=
++HAVE_JAVAC_ENVVAR=
++CLASSPATH=
++CLASSPATH_SEPARATOR=:
++HAVE_GCJ_C=
++HAVE_JAVAC=
++HAVE_JIKES=
++HAVE_JAVACOMP=
++AC_SUBST([CONF_JAVAC])
++AC_SUBST([HAVE_JAVAC_ENVVAR])
++AC_SUBST([CLASSPATH])
++AC_SUBST([CLASSPATH_SEPARATOR])
++AC_SUBST([HAVE_JAVAC])
++AC_SUBST([HAVE_GCJ_C])
++AC_SUBST([HAVE_JIKES])
++AC_SUBST([HAVE_JAVACOMP])
++
+ AC_CHECK_PROG([JAR], [jar], [jar])
+ if test -n "$HAVE_JAVACOMP" && test -n "$JAR" && test "$JAVA_CHOICE" != no; then
+   BUILDJAVA=yes
