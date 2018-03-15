@@ -1,0 +1,59 @@
+From 2b3e16981365d02eca2f09ae0739f97523176749 Mon Sep 17 00:00:00 2001
+From: Liwei Song <liwei.song@windriver.com>
+Date: Mon, 12 Mar 2018 07:01:53 +0000
+Subject: [PATCH] Add Coffeelake PCI IDs for H Skus
+
+Add the Coffeelake PCI IDs based on the following kernel patches:
+
+commit ccfd13215fd25a0e8c28221f3acc0dcaec11cd15
+Author: Anusha Srivatsa <anusha.srivatsa@intel.com>
+Date:   Thu Jun 8 16:41:06 2017 -0700
+
+    drm/i915/cfl: Add Coffee Lake PCI IDs for H Sku.
+
+Upstream-Status: Pending
+
+Signed-off-by: Liwei Song <liwei.song@windriver.com>
+---
+ src/i915_pciids.h  | 4 ++++
+ src/intel_module.c | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/src/i915_pciids.h b/src/i915_pciids.h
+index 11ccfa9c047a..17eeea8c67e7 100644
+--- a/src/i915_pciids.h
++++ b/src/i915_pciids.h
+@@ -347,4 +347,8 @@
+ 	INTEL_VGA_DEVICE(0x3E92, info), /* SRV GT2 */ \
+ 	INTEL_VGA_DEVICE(0x3E96, info)  /* SRV GT2 */
+ 
++#define INTEL_CFL_H_IDS(info) \
++	INTEL_VGA_DEVICE(0x3E9B, info), /* Halo GT2 */ \
++	INTEL_VGA_DEVICE(0x3E94, info)  /* Halo GT2 */
++
+ #endif /* _I915_PCIIDS_H */
+diff --git a/src/intel_module.c b/src/intel_module.c
+index 4827a67255f0..b743f2e9362c 100644
+--- a/src/intel_module.c
++++ b/src/intel_module.c
+@@ -313,6 +313,8 @@ static const SymTabRec intel_chipsets[] = {
+ 	{0x3E91, "HD Graphics"},
+ 	{0x3E92, "HD Graphics"},
+ 	{0x3E96, "HD Graphics"},
++	{0x3E9B, "HD Graphics"},
++	{0x3E94, "HD Graphics"},
+ 
+ 	/* When adding new identifiers, also update:
+ 	 * 1. intel_identify()
+@@ -381,6 +383,8 @@ static const struct pci_id_match intel_device_match[] = {
+ 
+ 	INTEL_CFL_S_IDS(&intel_coffeelake_info),
+ 
++	INTEL_CFL_H_IDS(&intel_coffeelake_info),
++
+ 	INTEL_VGA_DEVICE(PCI_MATCH_ANY, &intel_generic_info),
+ #endif
+ 
+-- 
+2.13.3
+
