@@ -30,7 +30,6 @@ LICENSE = "\
     & Firmware-Marvell \
     & Firmware-moxa \
     & Firmware-myri10ge_firmware \
-    & Firmware-netronome \
     & Firmware-nvidia \
     & Firmware-OLPC \
     & Firmware-ath9k-htc \
@@ -87,7 +86,6 @@ LIC_FILES_CHKSUM = "\
     file://LICENCE.Marvell;md5=9ddea1734a4baf3c78d845151f42a37a \
     file://LICENCE.moxa;md5=1086614767d8ccf744a923289d3d4261 \
     file://LICENCE.myri10ge_firmware;md5=42e32fb89f6b959ca222e25ac8df8fed \
-    file://LICENCE.Netronome;md5=cd2a3e6effe3cdf42731575b8e9477ed \
     file://LICENCE.nvidia;md5=4428a922ed3ba2ceec95f076a488ce07 \
     file://LICENCE.OLPC;md5=5b917f9d8c061991be4f6f5f108719cd \
     file://LICENCE.open-ath9k-htc-firmware;md5=1b33c9f4d17bc4d457bdb23727046837 \
@@ -174,7 +172,7 @@ NO_GENERIC_LICENSE[WHENCE] = "WHENCE"
 
 SRCREV = "bf04291309d3169c0ad3b8db52564235bbd08e30"
 PE = "1"
-PV = "0.0+git0+bfeee58b50"
+PV = "0.0+git${SRCPV}"
 
 SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
 
@@ -202,9 +200,6 @@ do_install() {
 	# Avoid Makefile to be deployed
 	rm ${D}${nonarch_base_libdir}/firmware/Makefile
 
-	# Remove unbuild firmware which needs cmake and bash
-	rm ${D}${nonarch_base_libdir}/firmware/carl9170fw -rf
-
 	# Remove pointless bash script
 	rm ${D}${nonarch_base_libdir}/firmware/configure
 
@@ -224,40 +219,30 @@ do_install() {
 
 
 PACKAGES =+ "${PN}-ralink-license ${PN}-ralink \
-             ${PN}-mt7601u-license ${PN}-mt7601u \
              ${PN}-radeon-license ${PN}-radeon \
-             ${PN}-marvell-license ${PN}-pcie8897 ${PN}-usb8897 ${PN}-pcie8997 \
-             ${PN}-sd8686 ${PN}-sd8688 ${PN}-sd8787 ${PN}-sd8797 ${PN}-sd8801 ${PN}-sd8887 ${PN}-sd8897 \
+             ${PN}-marvell-license ${PN}-pcie8897 ${PN}-usb8897 \
+             ${PN}-sd8686 ${PN}-sd8787 ${PN}-sd8797 \
              ${PN}-ti-connectivity-license ${PN}-wl12xx ${PN}-wl18xx \
              ${PN}-vt6656-license ${PN}-vt6656 \
-             ${PN}-rtl-license ${PN}-rtl8188 ${PN}-rtl8192cu ${PN}-rtl8192ce ${PN}-rtl8192su ${PN}-rtl8723 ${PN}-rtl8821 \
+             ${PN}-rtl-license ${PN}-rtl8192cu ${PN}-rtl8192ce ${PN}-rtl8192su \
              ${PN}-broadcom-license \
-             ${PN}-bcm4329 ${PN}-bcm4330 ${PN}-bcm4334 ${PN}-bcm43340 \
-             ${PN}-bcm43362 ${PN}-bcm43430 ${PN}-bcm4354 \
+             ${PN}-bcm4329 ${PN}-bcm4330 ${PN}-bcm4334 \
+             ${PN}-bcm4354 \
              ${PN}-atheros-license ${PN}-ar9170 ${PN}-ath6k ${PN}-ath9k \
-             ${PN}-gplv2-license ${PN}-carl9170 \
+             ${PN}-gplv2-license \
              ${PN}-ar3k-license ${PN}-ar3k ${PN}-qca \
-             \
-             ${PN}-imx-sdma-license ${PN}-imx-sdma-imx6q ${PN}-imx-sdma-imx7d \
-             \
              ${PN}-iwlwifi-license ${PN}-iwlwifi \
              ${PN}-iwlwifi-135-6 \
              ${PN}-iwlwifi-3160-7 ${PN}-iwlwifi-3160-8 ${PN}-iwlwifi-3160-9 \
-             ${PN}-iwlwifi-3160-10 ${PN}-iwlwifi-3160-12 ${PN}-iwlwifi-3160-13 \
-             ${PN}-iwlwifi-3160-16 ${PN}-iwlwifi-3160-17 \
              ${PN}-iwlwifi-6000-4 ${PN}-iwlwifi-6000g2a-5 ${PN}-iwlwifi-6000g2a-6 \
              ${PN}-iwlwifi-6000g2b-5 ${PN}-iwlwifi-6000g2b-6 \
              ${PN}-iwlwifi-6050-4 ${PN}-iwlwifi-6050-5 \
              ${PN}-iwlwifi-7260 \
              ${PN}-iwlwifi-7265 \
-             ${PN}-iwlwifi-7265d ${PN}-iwlwifi-8000c ${PN}-iwlwifi-8265 \
+             ${PN}-iwlwifi-8000c \
              ${PN}-iwlwifi-misc \
              ${PN}-ibt-license ${PN}-ibt ${PN}-ibt-misc \
-             ${PN}-ibt-12-16 ${PN}-ibt-hw-37-7 ${PN}-ibt-hw-37-8 \
-             ${PN}-adsp-sst-license ${PN}-adsp-sst \
              ${PN}-bnx2-mips \
-             ${PN}-netronome-license ${PN}-netronome \
-             ${PN}-qat ${PN}-qat-license \
              ${PN}-whence-license \
              ${PN}-license \
              "
@@ -288,16 +273,9 @@ RDEPENDS_${PN}-ar9170 += "${PN}-atheros-license"
 RDEPENDS_${PN}-ath6k += "${PN}-atheros-license"
 RDEPENDS_${PN}-ath9k += "${PN}-atheros-license"
 
-# For carl9170
-LICENSE_${PN}-carl9170 = "Firmware-GPLv2"
 LICENSE_${PN}-gplv2-license = "Firmware-GPLv2"
 
 FILES_${PN}-gplv2-license = "${nonarch_base_libdir}/firmware/GPL-2"
-FILES_${PN}-carl9170 = " \
-  ${nonarch_base_libdir}/firmware/carl9170*.fw \
-"
-
-RDEPENDS_${PN}-carl9170 += "${PN}-gplv2-license"
 
 # For QualCommAthos
 LICENSE_${PN}-ar3k = "Firmware-qualcommAthos_ar3k"
@@ -325,17 +303,6 @@ FILES_${PN}-ralink = " \
 
 RDEPENDS_${PN}-ralink += "${PN}-ralink-license"
 
-# For mediatek MT7601U
-LICENSE_${PN}-mt7601u = "Firmware-ralink_a_mediatek_company_firmware"
-LICENSE_${PN}-mt7601u-license = "Firmware-ralink_a_mediatek_company_firmware"
-
-FILES_${PN}-mt7601u-license = "${nonarch_base_libdir}/firmware/LICENCE.ralink_a_mediatek_company_firmware"
-FILES_${PN}-mt7601u = " \
-  ${nonarch_base_libdir}/firmware/mt7601u.bin \
-"
-
-RDEPENDS_${PN}-mt7601u += "${PN}-mt7601u-license"
-
 # For radeon
 LICENSE_${PN}-radeon = "Firmware-radeon"
 LICENSE_${PN}-radeon-license = "Firmware-radeon"
@@ -349,32 +316,18 @@ RDEPENDS_${PN}-radeon += "${PN}-radeon-license"
 
 # For marvell
 LICENSE_${PN}-pcie8897 = "Firmware-Marvell"
-LICENSE_${PN}-pcie8997 = "Firmware-Marvell"
 LICENSE_${PN}-sd8686 = "Firmware-Marvell"
-LICENSE_${PN}-sd8688 = "Firmware-Marvell"
 LICENSE_${PN}-sd8787 = "Firmware-Marvell"
 LICENSE_${PN}-sd8797 = "Firmware-Marvell"
-LICENSE_${PN}-sd8801 = "Firmware-Marvell"
-LICENSE_${PN}-sd8887 = "Firmware-Marvell"
-LICENSE_${PN}-sd8897 = "Firmware-Marvell"
 LICENSE_${PN}-marvell-license = "Firmware-Marvell"
 
 FILES_${PN}-marvell-license = "${nonarch_base_libdir}/firmware/LICENCE.Marvell"
 FILES_${PN}-pcie8897 = " \
   ${nonarch_base_libdir}/firmware/mrvl/pcie8897_uapsta.bin \
 "
-FILES_${PN}-pcie8997 = " \
-  ${nonarch_base_libdir}/firmware/mrvl/pcie8997_wlan_v4.bin \
-  ${nonarch_base_libdir}/firmware/mrvl/pcieuart8997_combo_v4.bin \
-  ${nonarch_base_libdir}/firmware/mrvl/pcieusb8997_combo_v4.bin \
-"
 FILES_${PN}-sd8686 = " \
   ${nonarch_base_libdir}/firmware/libertas/sd8686_v9* \
   ${nonarch_base_libdir}/firmware/sd8686* \
-"
-FILES_${PN}-sd8688 = " \
-  ${nonarch_base_libdir}/firmware/libertas/sd8688* \
-  ${nonarch_base_libdir}/firmware/mrvl/sd8688* \
 "
 FILES_${PN}-sd8787 = " \
   ${nonarch_base_libdir}/firmware/mrvl/sd8787_uapsta.bin \
@@ -382,46 +335,14 @@ FILES_${PN}-sd8787 = " \
 FILES_${PN}-sd8797 = " \
   ${nonarch_base_libdir}/firmware/mrvl/sd8797_uapsta.bin \
 "
-FILES_${PN}-sd8801 = " \
-  ${nonarch_base_libdir}/firmware/mrvl/sd8801_uapsta.bin \
-"
-FILES_${PN}-sd8887 = " \
-  ${nonarch_base_libdir}/firmware/mrvl/sd8887_uapsta.bin \
-"
-FILES_${PN}-sd8897 = " \
-  ${nonarch_base_libdir}/firmware/mrvl/sd8897_uapsta.bin \
-"
-
 RDEPENDS_${PN}-sd8686 += "${PN}-marvell-license"
-RDEPENDS_${PN}-sd8688 += "${PN}-marvell-license"
 RDEPENDS_${PN}-sd8787 += "${PN}-marvell-license"
 RDEPENDS_${PN}-sd8797 += "${PN}-marvell-license"
-RDEPENDS_${PN}-sd8801 += "${PN}-marvell-license"
-RDEPENDS_${PN}-sd8887 += "${PN}-marvell-license"
-RDEPENDS_${PN}-sd8897 += "${PN}-marvell-license"
-
-# For netronome
-LICENSE_${PN}-netronome = "Firmware-netronome"
-
-FILES_${PN}-netronome-license = " \
-  ${nonarch_base_libdir}/firmware/LICENCE.Netronome \
-"
-FILES_${PN}-netronome = " \
-  ${nonarch_base_libdir}/firmware/netronome/nic_AMDA0081*.nffw \
-  ${nonarch_base_libdir}/firmware/netronome/nic_AMDA0096*.nffw \
-  ${nonarch_base_libdir}/firmware/netronome/nic_AMDA0097*.nffw \
-  ${nonarch_base_libdir}/firmware/netronome/nic_AMDA0099*.nffw \
-"
-
-RDEPENDS_${PN}-netronome += "${PN}-netronome-license"
 
 # For rtl
-LICENSE_${PN}-rtl8188 = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl8192cu = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl8192ce = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl8192su = "Firmware-rtlwifi_firmware"
-LICENSE_${PN}-rtl8723 = "Firmware-rtlwifi_firmware"
-LICENSE_${PN}-rtl8821 = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl-license = "Firmware-rtlwifi_firmware"
 
 LICENSE_${PN}-pcie8897 = "Firmware-Marvell"
@@ -440,9 +361,6 @@ RDEPENDS_${PN}-usb8897 += "${PN}-marvell-license"
 FILES_${PN}-rtl-license = " \
   ${nonarch_base_libdir}/firmware/LICENCE.rtlwifi_firmware.txt \
 "
-FILES_${PN}-rtl8188 = " \
-  ${nonarch_base_libdir}/firmware/rtlwifi/rtl8188*.bin \
-"
 FILES_${PN}-rtl8192cu = " \
   ${nonarch_base_libdir}/firmware/rtlwifi/rtl8192cufw*.bin \
 "
@@ -452,19 +370,9 @@ FILES_${PN}-rtl8192ce = " \
 FILES_${PN}-rtl8192su = " \
   ${nonarch_base_libdir}/firmware/rtlwifi/rtl8712u.bin \
 "
-FILES_${PN}-rtl8723 = " \
-  ${nonarch_base_libdir}/firmware/rtlwifi/rtl8723*.bin \
-"
-FILES_${PN}-rtl8821 = " \
-  ${nonarch_base_libdir}/firmware/rtlwifi/rtl8821*.bin \
-"
-
-RDEPENDS_${PN}-rtl8188 += "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8192ce += "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8192cu += "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8192su = "${PN}-rtl-license"
-RDEPENDS_${PN}-rtl8723 += "${PN}-rtl-license"
-RDEPENDS_${PN}-rtl8821 += "${PN}-rtl-license"
 
 # For ti-connectivity
 LICENSE_${PN}-wl12xx = "Firmware-ti-connectivity"
@@ -502,9 +410,6 @@ RDEPENDS_${PN}-vt6656 = "${PN}-vt6656-license"
 LICENSE_${PN}-bcm4329 = "Firmware-broadcom_bcm43xx"
 LICENSE_${PN}-bcm4330 = "Firmware-broadcom_bcm43xx"
 LICENSE_${PN}-bcm4334 = "Firmware-broadcom_bcm43xx"
-LICENSE_${PN}-bcm43340 = "Firmware-broadcom_bcm43xx"
-LICENSE_${PN}-bcm43362 = "Firmware-broadcom_bcm43xx"
-LICENSE_${PN}-bcm43430 = "Firmware-broadcom_bcm43xx"
 LICENSE_${PN}-bcm4354 = "Firmware-broadcom_bcm43xx"
 LICENSE_${PN}-broadcom-license = "Firmware-broadcom_bcm43xx"
 
@@ -520,15 +425,6 @@ FILES_${PN}-bcm4330 = " \
 FILES_${PN}-bcm4334 = " \
   ${nonarch_base_libdir}/firmware/brcm/brcmfmac4334-sdio.bin \
 "
-FILES_${PN}-bcm43340 = " \
-  ${nonarch_base_libdir}/firmware/brcm/brcmfmac43340-sdio.bin \
-"
-FILES_${PN}-bcm43362 = " \
-  ${nonarch_base_libdir}/firmware/brcm/brcmfmac43362-sdio.bin \
-"
-FILES_${PN}-bcm43430 = " \
-  ${nonarch_base_libdir}/firmware/brcm/brcmfmac43430-sdio.bin \
-"
 FILES_${PN}-bcm4354 = " \
   ${nonarch_base_libdir}/firmware/brcm/brcmfmac4354-sdio.bin \
 "
@@ -536,9 +432,6 @@ FILES_${PN}-bcm4354 = " \
 RDEPENDS_${PN}-bcm4329 += "${PN}-broadcom-license"
 RDEPENDS_${PN}-bcm4330 += "${PN}-broadcom-license"
 RDEPENDS_${PN}-bcm4334 += "${PN}-broadcom-license"
-RDEPENDS_${PN}-bcm43340 += "${PN}-broadcom-license"
-RDEPENDS_${PN}-bcm43362 += "${PN}-broadcom-license"
-RDEPENDS_${PN}-bcm43430 += "${PN}-broadcom-license"
 RDEPENDS_${PN}-bcm4354 += "${PN}-broadcom-license"
 
 # For Broadcom bnx2-mips
@@ -554,35 +447,12 @@ FILES_${PN}-whence-license = "${nonarch_base_libdir}/firmware/WHENCE"
 
 RDEPENDS_${PN}-bnx2-mips += "${PN}-whence-license"
 
-# For imx-sdma
-LICENSE_${PN}-imx-sdma-imx6q       = "Firmware-imx-sdma_firmware"
-LICENSE_${PN}-imx-sdma-imx7d       = "Firmware-imx-sdma_firmware"
-LICENSE_${PN}-imx-sdma-license       = "Firmware-imx-sdma_firmware"
-
-FILES_${PN}-imx-sdma-imx6q = "${nonarch_base_libdir}/firmware/imx/sdma/sdma-imx6q.bin"
-
-RPROVIDES_${PN}-imx-sdma-imx6q = "firmware-imx-sdma-imx6q"
-RREPLACES_${PN}-imx-sdma-imx6q = "firmware-imx-sdma-imx6q"
-RCONFLICTS_${PN}-imx-sdma-imx6q = "firmware-imx-sdma-imx6q"
-
-FILES_${PN}-imx-sdma-imx7d = "${nonarch_base_libdir}/firmware/imx/sdma/sdma-imx7d.bin"
-
-FILES_${PN}-imx-sdma-license = "${nonarch_base_libdir}/firmware/LICENSE.sdma_firmware"
-
-RDEPENDS_${PN}-imx-sdma-imx6q += "${PN}-imx-sdma-license"
-RDEPENDS_${PN}-imx-sdma-imx7d += "${PN}-imx-sdma-license"
-
 # For iwlwifi
 LICENSE_${PN}-iwlwifi           = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-135-6     = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-3160-7    = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-3160-8    = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-3160-9    = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-3160-10   = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-3160-12   = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-3160-13   = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-3160-16   = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-3160-17   = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-6000-4    = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-6000g2a-5 = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-6000g2a-6 = "Firmware-iwlwifi_firmware"
@@ -592,9 +462,7 @@ LICENSE_${PN}-iwlwifi-6050-4    = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-6050-5    = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-7260      = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-7265      = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-7265d     = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-8000c     = "Firmware-iwlwifi_firmware"
-LICENSE_${PN}-iwlwifi-8265      = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-misc      = "Firmware-iwlwifi_firmware"
 LICENSE_${PN}-iwlwifi-license   = "Firmware-iwlwifi_firmware"
 
@@ -604,11 +472,6 @@ FILES_${PN}-iwlwifi-135-6 = "${nonarch_base_libdir}/firmware/iwlwifi-135-6.ucode
 FILES_${PN}-iwlwifi-3160-7 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-7.ucode"
 FILES_${PN}-iwlwifi-3160-8 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-8.ucode"
 FILES_${PN}-iwlwifi-3160-9 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-9.ucode"
-FILES_${PN}-iwlwifi-3160-10 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-10.ucode"
-FILES_${PN}-iwlwifi-3160-12 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-12.ucode"
-FILES_${PN}-iwlwifi-3160-13 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-13.ucode"
-FILES_${PN}-iwlwifi-3160-16 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-16.ucode"
-FILES_${PN}-iwlwifi-3160-17 = "${nonarch_base_libdir}/firmware/iwlwifi-3160-17.ucode"
 FILES_${PN}-iwlwifi-6000-4 = "${nonarch_base_libdir}/firmware/iwlwifi-6000-4.ucode"
 FILES_${PN}-iwlwifi-6000g2a-5 = "${nonarch_base_libdir}/firmware/iwlwifi-6000g2a-5.ucode"
 FILES_${PN}-iwlwifi-6000g2a-6 = "${nonarch_base_libdir}/firmware/iwlwifi-6000g2a-6.ucode"
@@ -618,20 +481,13 @@ FILES_${PN}-iwlwifi-6050-4 = "${nonarch_base_libdir}/firmware/iwlwifi-6050-4.uco
 FILES_${PN}-iwlwifi-6050-5 = "${nonarch_base_libdir}/firmware/iwlwifi-6050-5.ucode"
 FILES_${PN}-iwlwifi-7260   = "${nonarch_base_libdir}/firmware/iwlwifi-7260-*.ucode"
 FILES_${PN}-iwlwifi-7265   = "${nonarch_base_libdir}/firmware/iwlwifi-7265-*.ucode"
-FILES_${PN}-iwlwifi-7265d   = "${nonarch_base_libdir}/firmware/iwlwifi-7265D-*.ucode"
 FILES_${PN}-iwlwifi-8000c   = "${nonarch_base_libdir}/firmware/iwlwifi-8000C-*.ucode"
-FILES_${PN}-iwlwifi-8265   = "${nonarch_base_libdir}/firmware/iwlwifi-8265-*.ucode"
 FILES_${PN}-iwlwifi-misc   = "${nonarch_base_libdir}/firmware/iwlwifi-*.ucode"
 
 RDEPENDS_${PN}-iwlwifi-135-6     = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-3160-7    = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-3160-8    = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-3160-9    = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-3160-10   = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-3160-12   = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-3160-13   = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-3160-16   = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-3160-17   = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-6000-4    = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-6000g2a-5 = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-6000g2a-6 = "${PN}-iwlwifi-license"
@@ -641,9 +497,7 @@ RDEPENDS_${PN}-iwlwifi-6050-4    = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-6050-5    = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-7260      = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-7265      = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-7265d     = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-8000c     = "${PN}-iwlwifi-license"
-RDEPENDS_${PN}-iwlwifi-8265      = "${PN}-iwlwifi-license"
 RDEPENDS_${PN}-iwlwifi-misc      = "${PN}-iwlwifi-license"
 
 # -iwlwifi-misc is a "catch all" package that includes all the iwlwifi
@@ -665,37 +519,16 @@ RCONFLICTS_${PN}-iwlwifi-7260 = "${PN}-iwlwifi-7260-7 ${PN}-iwlwifi-7260-8 ${PN}
 
 # For ibt
 LICENSE_${PN}-ibt-license = "Firmware-ibt_firmware"
-LICENSE_${PN}-ibt-hw-37-7 = "Firmware-ibt_firmware"
-LICENSE_${PN}-ibt-hw-37-8 = "Firmware-ibt_firmware"
-LICENSE_${PN}-ibt-12-16   = "Firmware-ibt_firmware"
 LICENSE_${PN}-ibt-misc    = "Firmware-ibt_firmware"
 
 FILES_${PN}-ibt-license = "${nonarch_base_libdir}/firmware/LICENCE.ibt_firmware"
-FILES_${PN}-ibt-hw-37-7 = "${nonarch_base_libdir}/firmware/intel/ibt-hw-37.7*.bseq"
-FILES_${PN}-ibt-hw-37-8 = "${nonarch_base_libdir}/firmware/intel/ibt-hw-37.8*.bseq"
-FILES_${PN}-ibt-12-16   = "${nonarch_base_libdir}/firmware/intel/ibt-12-16.sfi /lib/firmware/intel/ibt-12-16.ddc"
 FILES_${PN}-ibt-misc    = "${nonarch_base_libdir}/firmware/ibt-*"
 
-RDEPENDS_${PN}-ibt-hw-37-7 = "${PN}-ibt-license"
 RDEPENDS_${PN}-ibt-hw-37.8 = "${PN}-ibt-license"
-RDEPENDS_${PN}-ibt-12-16   = "${PN}-ibt-license"
 RDEPENDS_${PN}-ibt-misc    = "${PN}-ibt-license"
 
 ALLOW_EMPTY_${PN}-ibt= "1"
 ALLOW_EMPTY_${PN}-ibt-misc = "1"
-
-FILES_${PN}-adsp-sst-license      = "${nonarch_base_libdir}/firmware/LICENCE.adsp_sst"
-LICENSE_${PN}-adsp-sst            = "Firmware-adsp_sst"
-LICENSE_${PN}-adsp-sst-license    = "Firmware-adsp_sst"
-FILES_${PN}-adsp-sst              = "${nonarch_base_libdir}/firmware/intel/dsp_fw*"
-RDEPENDS_${PN}-adsp-sst           = "${PN}-adsp-sst-license"
-
-# For QAT
-LICENSE_${PN}-qat         = "Firmware-qat"
-LICENSE_${PN}-qat-license = "Firmware-qat"
-FILES_${PN}-qat-license   = "${nonarch_base_libdir}/firmware/LICENCE.qat_firmware"
-FILES_${PN}-qat           = "${nonarch_base_libdir}/firmware/qat*.bin"
-RDEPENDS_${PN}-qat        = "${PN}-qat-license"
 
 # For other firmwares
 # Maybe split out to separate packages when needed.
@@ -726,7 +559,6 @@ LICENSE_${PN} = "\
     & Firmware-OLPC \
     & Firmware-ath9k-htc \
     & Firmware-phanfw \
-    & Firmware-qat \
     & Firmware-qla1280 \
     & Firmware-qla2xxx \
     & Firmware-r8a779x_usb3 \
@@ -768,4 +600,3 @@ python populate_packages_prepend () {
 # Firmware files are generally not ran on the CPU, so they can be
 # allarch despite being architecture specific
 INSANE_SKIP_${PN} = "arch"
-INSANE_SKIP_${PN}-netronome = "arch"
