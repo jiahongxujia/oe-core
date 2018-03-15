@@ -16,7 +16,7 @@
 # ${GRUB_TIMEOUT} - timeout before executing the deault label (optional)
 # ${GRUB_ROOT} - grub's root device.
 
-do_bootimg[depends] += "${MLPREFIX}grub-efi:do_deploy"
+do_bootimg[depends] += "grub-efi:do_deploy"
 
 GRUB_SERIAL ?= "console=ttyS0,115200"
 GRUB_CFG_VM = "${S}/grub_vm.cfg"
