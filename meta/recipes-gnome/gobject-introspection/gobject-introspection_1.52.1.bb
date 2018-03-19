@@ -18,8 +18,40 @@ SRC_URI = "${GNOME_MIRROR}/${BPN}/1.52/${BPN}-${PV}.tar.xz \
 SRC_URI[md5sum] = "34157073991f9eeb0ed953351b65eb61"
 SRC_URI[sha256sum] = "2ed0c38d52fe1aa6fc4def0c868fe481cb87b532fc694756b26d6cfab29faff4"
 
-inherit autotools pkgconfig gtk-doc python3native qemu gobject-introspection-data upstream-version-is-even
+inherit autotools pkgconfig gtk-doc python3native qemu gobject-introspection-data upstream-version-is-even update-alternatives
 BBCLASSEXTEND = "native"
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+ALTERNATIVE_${PN} = "annotation-tool compiler-wrapper scanner scanner-lddwrapper scanner-qemuwrapper scanner-wrapper"
+ALTERNATIVE_${PN}-dev = "GLib-2.0.gir"
+ALTERNATIVE_LINK_NAME[annotation-tool] = "${bindir}/g-ir-annotation-tool"
+ALTERNATIVE_TARGET[annotation-tool] = "${bindir}/g-ir-annotation-tool-${MULTILIB_SUFFIX}"
+ALTERNATIVE_LINK_NAME[compiler-wrapper] = "${bindir}/g-ir-compiler-wrapper"
+ALTERNATIVE_TARGET[compiler-wrapper] = "${bindir}/g-ir-compiler-wrapper-${MULTILIB_SUFFIX}"
+ALTERNATIVE_LINK_NAME[scanner] = "${bindir}/g-ir-scanner"
+ALTERNATIVE_TARGET[scanner] = "${bindir}/g-ir-scanner-${MULTILIB_SUFFIX}"
+ALTERNATIVE_LINK_NAME[scanner-lddwrapper] = "${bindir}/g-ir-scanner-lddwrapper"
+ALTERNATIVE_TARGET[scanner-lddwrapper] = "${bindir}/g-ir-scanner-lddwrapper-${MULTILIB_SUFFIX}"
+ALTERNATIVE_LINK_NAME[scanner-qemuwrapper] = "${bindir}/g-ir-scanner-qemuwrapper"
+ALTERNATIVE_TARGET[scanner-qemuwrapper] = "${bindir}/g-ir-scanner-qemuwrapper-${MULTILIB_SUFFIX}"
+ALTERNATIVE_LINK_NAME[scanner-wrapper] = "${bindir}/g-ir-scanner-wrapper"
+ALTERNATIVE_TARGET[scanner-wrapper] = "${bindir}/g-ir-scanner-wrapper-${MULTILIB_SUFFIX}"
+ALTERNATIVE_LINK_NAME[GLib-2.0.gir] = "${datadir}/gir-1.0/GLib-2.0.gir"
+ALTERNATIVE_TARGET[GLib-2.0.gir] = "${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}"
+
+FILES_${PN}-dev += "${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "gobject_alternative_rename"
+
+gobject_alternative_rename() {
+        mv ${PKGD}${bindir}/g-ir-annotation-tool ${PKGD}${bindir}/g-ir-annotation-tool-${MULTILIB_SUFFIX}
+        mv ${PKGD}${bindir}/g-ir-compiler-wrapper ${PKGD}${bindir}/g-ir-compiler-wrapper-${MULTILIB_SUFFIX}
+        mv ${PKGD}${bindir}/g-ir-scanner ${PKGD}${bindir}/g-ir-scanner-${MULTILIB_SUFFIX}
+        mv ${PKGD}${bindir}/g-ir-scanner-lddwrapper ${PKGD}${bindir}/g-ir-scanner-lddwrapper-${MULTILIB_SUFFIX}
+        mv ${PKGD}${bindir}/g-ir-scanner-qemuwrapper ${PKGD}${bindir}/g-ir-scanner-qemuwrapper-${MULTILIB_SUFFIX}
+        mv ${PKGD}${bindir}/g-ir-scanner-wrapper ${PKGD}${bindir}/g-ir-scanner-wrapper-${MULTILIB_SUFFIX}
+        mv ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}
+}
 
 # needed for writing out the qemu wrapper script
 export STAGING_DIR_HOST
