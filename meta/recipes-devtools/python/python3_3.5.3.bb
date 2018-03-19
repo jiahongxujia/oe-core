@@ -53,7 +53,13 @@ UPSTREAM_CHECK_REGEX = "[Pp]ython-(?P<pver>\d+(\.\d+)+).tar"
 
 S = "${WORKDIR}/Python-${PV}"
 
-inherit autotools multilib_header python3native pkgconfig
+inherit autotools multilib_header python3native pkgconfig update-alternatives
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+
+ALTERNATIVE_${PN}-core = "python3.5m-config"
+ALTERNATIVE_LINK_NAME[python3.5m-config] = "${bindir}/python3.5m-config"
+ALTERNATIVE_TARGET[python3.5m-config] = "${bindir}/python3.5m-config-${MULTILIB_SUFFIX}"
 
 CONFIGUREOPTS += " --with-system-ffi "
 
@@ -202,6 +208,7 @@ py_package_preprocess () {
 		${PKGD}/${libdir}/python${PYTHON_MAJMIN}/config-${PYTHON_MAJMIN}${PYTHON_ABI}/Makefile \
 		${PKGD}/${libdir}/python${PYTHON_MAJMIN}/_sysconfigdata.py \
 		${PKGD}/${bindir}/python${PYTHON_MAJMIN}${PYTHON_ABI}-config
+	mv ${PKGD}/${bindir}/python3.5m-config ${PKGD}/${bindir}/python3.5m-config-${MULTILIB_SUFFIX}
 }
 
 require python-${PYTHON_MAJMIN}-manifest.inc
