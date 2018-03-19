@@ -19,7 +19,19 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=fbc093901857fcd118f065f900982c24"
 SHRT_VER = "${@d.getVar('PV').split('.')[0]}.${@d.getVar('PV').split('.')[1]}"
 
 SRC_URI = "http://ftp.gnome.org/pub/GNOME/sources/${BPN}/${SHRT_VER}/${BP}.tar.xz"
-inherit autotools pkgconfig upstream-version-is-even
+inherit autotools pkgconfig upstream-version-is-even update-alternatives
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+ALTERNATIVE_${PN} = "vala-gen-introspect"
+ALTERNATIVE_LINK_NAME[vala-gen-introspect] = "${bindir}/vala-gen-introspect-${SHRT_VER}"
+ALTERNATIVE_TARGET[vala-gen-introspect] = "${bindir}/vala-gen-introspect-${SHRT_VER}-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "alternative_rename"
+
+alternative_rename() {
+        mv ${PKGD}${bindir}/vala-gen-introspect-${SHRT_VER} \
+           ${PKGD}${bindir}/vala-gen-introspect-${SHRT_VER}-${MULTILIB_SUFFIX}
+}
 
 FILES_${PN} += "${datadir}/${BPN}-${SHRT_VER}/vapi ${libdir}/${BPN}-${SHRT_VER}/"
 FILES_${PN}-doc += "${datadir}/devhelp"
