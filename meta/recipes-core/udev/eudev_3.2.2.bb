@@ -24,7 +24,20 @@ UPSTREAM_CHECK_URI = "https://github.com/gentoo/eudev/releases"
 SRC_URI[md5sum] = "41e19b70462692fefd072a3f38818b6e"
 SRC_URI[sha256sum] = "3e4c56ec2fc1854afd0a31f3affa48f922c62d40ee12a0c1a4b4f152ef5b0f63"
 
-inherit autotools update-rc.d qemu pkgconfig
+inherit autotools update-rc.d qemu pkgconfig update-alternatives
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+
+ALTERNATIVE_${PN}-dev = "udev.pc"
+ALTERNATIVE_LINK_NAME[udev.pc] = "${datadir}/pkgconfig/udev.pc"
+ALTERNATIVE_TARGET[udev.pc] = "${datadir}/pkgconfig/udev.pc-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "eudev_alternative_rename"
+
+eudev_alternative_rename() {
+	# rename udev.pc to udev.pc-MULTILIB_SUFFIX
+	mv ${PKGD}${datadir}/pkgconfig/udev.pc ${PKGD}${datadir}/pkgconfig/udev.pc-${MULTILIB_SUFFIX}
+}
 
 EXTRA_OECONF = " \
     --sbindir=${base_sbindir} \
@@ -64,7 +77,7 @@ PACKAGES =+ "eudev-hwdb"
 
 
 FILES_${PN} += "${libexecdir} ${base_libdir}/udev ${bindir}/udevadm"
-FILES_${PN}-dev = "${datadir}/pkgconfig/udev.pc \
+FILES_${PN}-dev = "${datadir}/pkgconfig/udev.pc-${MULTILIB_SUFFIX} \
                    ${includedir}/libudev.h ${libdir}/libudev.so \
                    ${includedir}/udev.h ${libdir}/libudev.la \
                    ${libdir}/libudev.a ${libdir}/pkgconfig/libudev.pc"
