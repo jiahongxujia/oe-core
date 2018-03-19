@@ -19,7 +19,19 @@ BINCONFIG = "${bindir}/icu-config"
 
 ICU_MAJOR_VER = "${@d.getVar('PV').split('.')[0]}"
 
-inherit autotools pkgconfig binconfig
+inherit autotools pkgconfig binconfig update-alternatives
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+
+ALTERNATIVE_${PN}-dev = "icu-config"
+ALTERNATIVE_LINK_NAME[icu-config] = "${bindir}/icu-config"
+ALTERNATIVE_TARGET[icu-config] = "${bindir}/icu-config-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "alternatives_rename"
+
+alternatives_rename() {
+    mv ${PKGD}/${bindir}/icu-config ${PKGD}/${bindir}/icu-config-${MULTILIB_SUFFIX}
+}
 
 # ICU needs the native build directory as an argument to its --with-cross-build option when
 # cross-compiling. Taken the situation that different builds may share a common sstate-cache
@@ -59,7 +71,7 @@ do_install_append_class-target() {
 
 PACKAGES =+ "libicudata libicuuc libicui18n libicutu libicuio"
 
-FILES_${PN}-dev += "${libdir}/${BPN}/"
+FILES_${PN}-dev += "${libdir}/${BPN}/ ${bindir}/icu-config-${MULTILIB_SUFFIX}"
 
 FILES_libicudata = "${libdir}/libicudata.so.*"
 FILES_libicuuc = "${libdir}/libicuuc.so.*"
