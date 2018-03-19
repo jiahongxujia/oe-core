@@ -12,6 +12,20 @@ SRC_URI[sha256sum] = "7e87878658f2c9951a14fc64114d4958c0e65ac47530b8ac3078b2ce41
 
 PACKAGES =+ "cairo-gobject cairo-script-interpreter cairo-perf-utils"
 
+inherit update-alternatives
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+
+ALTERNATIVE_${PN}-perf-utils="cairo-trace"
+ALTERNATIVE_LINK_NAME[cairo-trace] = "${bindir}/cairo-trace"
+ALTERNATIVE_TARGET[cairo-trace] = "${bindir}/cairo-trace-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "alternatives_rename"
+
+alternatives_rename() {
+	mv ${PKGD}${bindir}/cairo-trace ${PKGD}${bindir}/cairo-trace-${MULTILIB_SUFFIX}
+}
+
 SUMMARY_${PN} = "The Cairo 2D vector graphics library"
 DESCRIPTION_${PN} = "Cairo is a multi-platform library providing anti-aliased \
 vector-based rendering for multiple target backends. Paths consist \
@@ -35,7 +49,7 @@ FILES_${PN} = "${libdir}/libcairo.so.*"
 FILES_${PN}-dev += "${libdir}/cairo/*.so"
 FILES_${PN}-gobject = "${libdir}/libcairo-gobject.so.*"
 FILES_${PN}-script-interpreter = "${libdir}/libcairo-script-interpreter.so.*"
-FILES_${PN}-perf-utils = "${bindir}/cairo-trace ${libdir}/cairo/*.la ${libdir}/cairo/libcairo-trace.so.*"
+FILES_${PN}-perf-utils = "${bindir}/cairo-trace* ${libdir}/cairo/*.la ${libdir}/cairo/libcairo-trace.so.*"
 
 do_install_append () {
 	rm -rf ${D}${bindir}/cairo-sphinx
