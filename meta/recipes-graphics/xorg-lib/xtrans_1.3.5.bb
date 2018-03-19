@@ -16,7 +16,20 @@ PE = "1"
 
 RDEPENDS_${PN}-dev = ""
 
-inherit gettext
+inherit gettext update-alternatives
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+
+FILES_${PN}-dev += "${datadir}/pkgconfig/xtrans.pc-${MULTILIB_SUFFIX}"
+ALTERNATIVE_${PN}-dev = "xtrans.pc"
+ALTERNATIVE_LINK_NAME[xtrans.pc] = "${datadir}/pkgconfig/xtrans.pc"
+ALTERNATIVE_TARGET[xtrans.pc] = "${datadir}/pkgconfig/xtrans.pc-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "xtrans_alternative_rename"
+
+xtrans_alternative_rename() {
+        mv ${PKGD}${datadir}/pkgconfig/xtrans.pc ${PKGD}${datadir}/pkgconfig/xtrans.pc-${MULTILIB_SUFFIX}
+}
 
 BBCLASSEXTEND = "native nativesdk"
 
