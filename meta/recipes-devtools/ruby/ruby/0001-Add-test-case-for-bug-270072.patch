@@ -1,0 +1,48 @@
+From a67d9f629b88c08b871d9bb1ac34ae6b832a1640 Mon Sep 17 00:00:00 2001
+From: Jonathan Claudius <jclaudius@mozilla.com>
+Date: Thu, 8 Feb 2018 00:03:46 -0500
+Subject: [PATCH] Add test case for bug 270072
+
+---
+ test/rubygems/test_gem_package.rb |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/test/rubygems/test_gem_package.rb b/test/rubygems/test_gem_package.rb
+index 6ae05fc..e9bd9e2 100644
+--- a/test/rubygems/test_gem_package.rb
++++ b/test/rubygems/test_gem_package.rb
+@@ -455,6 +455,31 @@ class TestGemPackage < Gem::Package::TarTestCase
+                  File.read(extracted)
+   end
+ 
++  def test_extract_symlink_parent
++   skip 'symlink not supported' if Gem.win_platform?
++
++   package = Gem::Package.new @gem
++
++   tgz_io = util_tar_gz do |tar|
++     tar.mkdir       'lib',               0755
++     tar.add_symlink 'lib/link', '../..', 0644
++     tar.add_file    'lib/link/outside.txt', 0644 do |io| io.write 'hi' end
++   end
++
++   # Extract into a subdirectory of @destination; if this test fails it writes
++   # a file outside destination_subdir, but we want the file to remain inside
++   # @destination so it will be cleaned up.
++   destination_subdir = File.join @destination, 'subdir'
++   FileUtils.mkdir_p destination_subdir
++
++   e = assert_raises Gem::Package::PathError do
++     package.extract_tar_gz tgz_io, destination_subdir
++   end
++
++   assert_equal("installing into parent path ../outside.txt of " +
++                 "#{destination_subdir} is not allowed", e.message)
++  end
++
+   def test_extract_tar_gz_directory
+     package = Gem::Package.new @gem
+ 
+-- 
+1.7.9.5
+

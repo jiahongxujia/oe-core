@@ -11,6 +11,15 @@ SRC_URI += " \
            file://CVE-2017-17790-2.patch \
            file://CVE-2017-17405.patch \
            file://CVE-2017-17405-2.patch \
+           file://CVE-2018-1000073.patch \
+           file://CVE-2018-1000074.patch \
+           file://CVE-2018-1000075.patch \
+           file://CVE-2018-1000076.patch \
+           file://CVE-2018-1000077.patch \
+           file://CVE-2018-1000078.patch \
+           file://0001-Add-test-case-for-bug-270072.patch \
+           file://CVE-2018-1000079.patch \
+           file://CVE-2018-1000079-2.patch \
            "
 
 SRC_URI[md5sum] = "782bca562e474dd25956dd0017d92677"
