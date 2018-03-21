@@ -50,7 +50,7 @@ gobject_alternative_rename() {
         mv ${PKGD}${bindir}/g-ir-scanner-lddwrapper ${PKGD}${bindir}/g-ir-scanner-lddwrapper-${MULTILIB_SUFFIX}
         mv ${PKGD}${bindir}/g-ir-scanner-qemuwrapper ${PKGD}${bindir}/g-ir-scanner-qemuwrapper-${MULTILIB_SUFFIX}
         mv ${PKGD}${bindir}/g-ir-scanner-wrapper ${PKGD}${bindir}/g-ir-scanner-wrapper-${MULTILIB_SUFFIX}
-        mv ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}
+#        mv ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}
 }
 
 # needed for writing out the qemu wrapper script
