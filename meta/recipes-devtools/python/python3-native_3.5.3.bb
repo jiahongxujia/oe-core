@@ -26,6 +26,7 @@ file://setup.py-check-cross_compiling-when-get-FLAGS.patch \
 file://0001-Do-not-use-the-shell-version-of-python-config-that-w.patch \
 file://support_SOURCE_DATE_EPOCH_in_py_compile.patch \
 file://CVE-2017-1000158.patch \
+file://CVE-2018-1000117.patch \
 "
 
 SRC_URI[md5sum] = "57d1f8bfbabf4f2500273fb0706e6f21"
