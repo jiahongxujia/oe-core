@@ -30,7 +30,7 @@ SRC_URI[md5sum] = "6b6eb722f512e7a24855ff084f54fe55"
 SRC_URI[sha256sum] = "fdfc4df2d001ee0c44ec071186e770046249263c491fcae48df0e1a3ca8f25a0"
 
 CVE_PRODUCT = "libcurl"
-inherit autotools pkgconfig binconfig multilib_header
+inherit autotools pkgconfig binconfig multilib_header update-alternatives
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'ipv6', d)} gnutls proxy threaded-resolver zlib"
 PACKAGECONFIG_class-native = "ipv6 proxy ssl threaded-resolver zlib"
@@ -65,6 +65,17 @@ EXTRA_OECONF = " \
     --without-libmetalink \
     --without-libpsl \
 "
+
+MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
+ALTERNATIVE_${PN}-dev = "curl-config"
+ALTERNATIVE_LINK_NAME[curl-config] = "${bindir}/curl-config"
+ALTERNATIVE_TARGET[curl-config] = "${bindir}/curl-config-${MULTILIB_SUFFIX}"
+
+PACKAGE_PREPROCESS_FUNCS += "alternative_rename"
+
+alternative_rename() {
+        mv ${PKGD}${bindir}/curl-config ${PKGD}${bindir}/curl-config-${MULTILIB_SUFFIX}
+}
 
 do_install_append() {
 	oe_multilib_header curl/curlbuild.h
