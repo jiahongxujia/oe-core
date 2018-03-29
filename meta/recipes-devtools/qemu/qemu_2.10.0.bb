@@ -38,6 +38,12 @@ SRC_URI = "http://wiki.qemu-project.org/download/${BP}.tar.bz2 \
            file://qemu-CVE-2017-15038.patch \
            file://qemu-CVE-2017-15289.patch \
            file://qemu-CVE-2017-18043.patch \
+           file://0001-i386-Change-X86CPUDefinition-model_id-to-const-char.patch \
+           file://0002-i386-Add-support-for-SPEC_CTRL-MSR.patch \
+           file://0003-i386-Add-spec-ctrl-CPUID-bit.patch \
+           file://0004-i386-Add-FEAT_8000_0008_EBX-CPUID-feature-word.patch \
+           file://0005-i386-Add-new-IBRS-versions-of-Intel-CPU-models.patch \
+           file://0006-i386-Add-EPYC-IBPB-CPU-model.patch \
            "
 UPSTREAM_CHECK_REGEX = "qemu-(?P<pver>\d+\..*)\.tar"
 
