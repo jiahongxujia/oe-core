@@ -12,6 +12,9 @@ SRC_URI = "https://mesa.freedesktop.org/archive/mesa-${PV}.tar.xz \
            file://0001-winsys-svga-drm-Include-sys-types.h.patch \
            file://0001-configure.ac-Always-check-for-expat.patch \
            file://0001-Makefile.vulkan.am-explictly-add-lib-expat-to-intel-.patch \
+           file://0001-i965-cnl-Add-a-preliminary-device-for-Cannonlake.patch \
+           file://0002-intel-common-add-flag-to-identify-platforms-by-name.patch \
+           file://0003-i965-CFL-Add-PCI-Ids-for-Coffee-Lake.patch \
            "
 SRC_URI[md5sum] = "e40bb428a263bd28cbf6478dae45b207"
 SRC_URI[sha256sum] = "69f472a874b1122404fa0bd13e2d6bf87eb3b9ad9c21d2f39872a96d83d9e5f5"
