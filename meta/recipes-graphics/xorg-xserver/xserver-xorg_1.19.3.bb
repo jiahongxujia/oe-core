@@ -18,6 +18,9 @@ SRC_URI += "file://musl-arm-inb-outb.patch \
             file://CVE-2017-12179.patch \
             file://CVE-2017-13721.patch \
             file://CVE-2017-13723.patch \
+            file://0001-dri2-Sync-i965_pci_ids.h-from-Mesa.patch \
+            file://0002-dri2-Sync-i965_pci_ids.h-from-Mesa.patch \
+            file://0003-dri2-Sync-i965_pci_ids.h-from-Mesa.patch \
             "
 SRC_URI[md5sum] = "015d2fc4b9f2bfe7a626edb63a62c65e"
 SRC_URI[sha256sum] = "677a8166e03474719238dfe396ce673c4234735464d6dadf2959b600d20e5a98"
