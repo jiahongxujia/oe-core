@@ -12,6 +12,7 @@ SRC_URI = "http://www.nasm.us/pub/nasm/releasebuilds/${PV}/nasm-${PV}.tar.bz2 \
            file://CVE-2017-17812.patch \
            file://CVE-2017-17813-CVE-2017-17814-CVE-2017-17816-CVE-2017-17817-CVE-2017-17820.patch \
            file://CVE-2017-17813-CVE-2017-17814-CVE-2017-17816-CVE-2017-17817-CVE-2017-17820-2.patch \
+           file://CVE-2018-8881.patch \
 "
 
 SRC_URI[md5sum] = "1f7d4662040d24351df7d6719ed4f97a"
