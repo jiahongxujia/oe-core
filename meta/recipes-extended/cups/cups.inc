@@ -8,6 +8,7 @@ SRC_URI = "https://github.com/apple/cups/releases/download/v${PV}/${BP}-source.t
            file://use_echo_only_in_init.patch \
            file://0001-don-t-try-to-run-generated-binaries.patch \
            file://cups_serverbin.patch \
+           file://CVE-2017-18248.patch \
 	  "
 
 UPSTREAM_CHECK_URI = "https://github.com/apple/cups/releases"
