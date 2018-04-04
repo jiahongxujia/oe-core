@@ -23,7 +23,6 @@ BBCLASSEXTEND = "native"
 
 MULTILIB_SUFFIX = "${@d.getVar('base_libdir',1).split('/')[-1]}"
 ALTERNATIVE_${PN} = "annotation-tool compiler-wrapper scanner scanner-lddwrapper scanner-qemuwrapper scanner-wrapper"
-ALTERNATIVE_${PN}-dev = "GLib-2.0.gir"
 ALTERNATIVE_LINK_NAME[annotation-tool] = "${bindir}/g-ir-annotation-tool"
 ALTERNATIVE_TARGET[annotation-tool] = "${bindir}/g-ir-annotation-tool-${MULTILIB_SUFFIX}"
 ALTERNATIVE_LINK_NAME[compiler-wrapper] = "${bindir}/g-ir-compiler-wrapper"
@@ -36,6 +35,8 @@ ALTERNATIVE_LINK_NAME[scanner-qemuwrapper] = "${bindir}/g-ir-scanner-qemuwrapper
 ALTERNATIVE_TARGET[scanner-qemuwrapper] = "${bindir}/g-ir-scanner-qemuwrapper-${MULTILIB_SUFFIX}"
 ALTERNATIVE_LINK_NAME[scanner-wrapper] = "${bindir}/g-ir-scanner-wrapper"
 ALTERNATIVE_TARGET[scanner-wrapper] = "${bindir}/g-ir-scanner-wrapper-${MULTILIB_SUFFIX}"
+
+ALTERNATIVE_${PN}-dev += "${@bb.utils.contains('GI_DATA_ENABLED', 'True', 'GLib-2.0.gir', '', d)}"
 ALTERNATIVE_LINK_NAME[GLib-2.0.gir] = "${datadir}/gir-1.0/GLib-2.0.gir"
 ALTERNATIVE_TARGET[GLib-2.0.gir] = "${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}"
 
@@ -50,7 +51,9 @@ gobject_alternative_rename() {
         mv ${PKGD}${bindir}/g-ir-scanner-lddwrapper ${PKGD}${bindir}/g-ir-scanner-lddwrapper-${MULTILIB_SUFFIX}
         mv ${PKGD}${bindir}/g-ir-scanner-qemuwrapper ${PKGD}${bindir}/g-ir-scanner-qemuwrapper-${MULTILIB_SUFFIX}
         mv ${PKGD}${bindir}/g-ir-scanner-wrapper ${PKGD}${bindir}/g-ir-scanner-wrapper-${MULTILIB_SUFFIX}
-#        mv ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}
+	if [ -e ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir ]; then
+	        mv ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir ${PKGD}${datadir}/gir-1.0/GLib-2.0.gir-${MULTILIB_SUFFIX}
+	fi
 }
 
 # needed for writing out the qemu wrapper script
