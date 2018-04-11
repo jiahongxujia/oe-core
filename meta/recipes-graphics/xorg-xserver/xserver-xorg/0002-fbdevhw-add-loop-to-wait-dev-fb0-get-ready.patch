@@ -1,0 +1,47 @@
+From 28bd94ccca005cd261cddfca330adbb4ff1c778f Mon Sep 17 00:00:00 2001
+From: Liwei Song <liwei.song@windriver.com>
+Date: Wed, 11 Apr 2018 21:41:24 -0400
+Subject: [PATCH 2/2] fbdevhw: add loop to wait /dev/fb0 get ready
+
+After compile i915 driver as kernel module, will got error message:
+(EE) open /dev/fb0: No such file or directory
+
+This is because i915 driver did not finish fb initialized work
+while process trying to open it. This is still a timing problem between
+i915.ko and Xorg
+
+Add a loop to wait i915 driver finished its initialize work
+can fix this error.
+
+Upstream-Status: submited
+
+Signed-off-by: Liwei Song <liwei.song@windriver.com>
+---
+ hw/xfree86/fbdevhw/fbdevhw.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/hw/xfree86/fbdevhw/fbdevhw.c b/hw/xfree86/fbdevhw/fbdevhw.c
+index b50ae5ed2bfb..fc265e347291 100644
+--- a/hw/xfree86/fbdevhw/fbdevhw.c
++++ b/hw/xfree86/fbdevhw/fbdevhw.c
+@@ -309,6 +309,7 @@ fbdev_open(int scrnIndex, const char *dev, char **namep)
+ {
+     struct fb_fix_screeninfo fix;
+     int fd;
++    int loop = 0;
+ 
+     /* try argument (from XF86Config) first */
+     if (dev) {
+@@ -320,7 +321,8 @@ fbdev_open(int scrnIndex, const char *dev, char **namep)
+         if ((NULL == dev) || ((fd = open(dev, O_RDWR, 0)) == -1)) {
+             /* last try: default device */
+             dev = "/dev/fb0";
+-            fd = open(dev, O_RDWR, 0);
++            while ((fd = open(dev, O_RDWR, 0)) == -1 && loop++ <= 100)
++               usleep(20000);
+         }
+     }
+ 
+-- 
+2.7.4
+

@@ -1,0 +1,63 @@
+From 6e5fe20d409045a9fe03022ce92a0824fac373a6 Mon Sep 17 00:00:00 2001
+From: Liwei Song <liwei.song@windriver.com>
+Date: Wed, 11 Apr 2018 03:18:59 +0000
+Subject: [PATCH 1/2] config: wait for DRM device to be successful initiated
+
+On my CoffeeLake machine, when build i915 driver as kernel module,
+will got following error message in Xorg.0.log:
+(EE) /dev/dri/card0: failed to set DRM interface version 1.4: Permission denied
+(EE) open /dev/fb0: No such file or directory
+
+When compile i915 as kernel module, drm device won't be initiated
+after rootfs was mounted. This may led Xorg access DRM device failed,
+since DRM  was not successful created by i915 driver yet.
+Then the set version process will not be done in InitOutput(),
+and it will be delayed to InitInput(), when came into InitInput()
+DRM device already maped to memory, So through ioctl set DRM interface
+version will failed, then print the error message in Xorg.0.log.
+
+To avoid the timing problem between i915.ko and Xorg,  we need make
+sure DRM device was created and no process hold it, because nobody
+hold it in InitOutput(), then the rest work is to ensure DRM was
+created successful. So add a loop method to wait DRM device are
+available.
+
+Upstream-Status: Submited
+
+Signed-off-by: Liwei Song <liwei.song@windriver.com>
+---
+ config/udev.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/config/udev.c b/config/udev.c
+index 932f230c7fcb..a7acb2559cf3 100644
+--- a/config/udev.c
++++ b/config/udev.c
+@@ -487,8 +487,11 @@ config_udev_odev_probe(config_odev_probe_proc_ptr probe_callback)
+     struct udev *udev;
+     struct udev_enumerate *enumerate;
+     struct udev_list_entry *devices, *device;
++    int loop = 0;
+ 
+     udev = udev_monitor_get_udev(udev_monitor);
++
++retry:
+     enumerate = udev_enumerate_new(udev);
+     if (!enumerate)
+         return;
+@@ -501,6 +504,12 @@ config_udev_odev_probe(config_odev_probe_proc_ptr probe_callback)
+ #endif
+     udev_enumerate_scan_devices(enumerate);
+     devices = udev_enumerate_get_list_entry(enumerate);
++    if (!devices && loop++ <= 10){
++	usleep(200000);
++	udev_enumerate_unref(enumerate);
++	goto retry;
++    }
++
+     udev_list_entry_foreach(device, devices) {
+         const char *syspath = udev_list_entry_get_name(device);
+         struct udev_device *udev_device = udev_device_new_from_syspath(udev, syspath);
+-- 
+2.7.4
+

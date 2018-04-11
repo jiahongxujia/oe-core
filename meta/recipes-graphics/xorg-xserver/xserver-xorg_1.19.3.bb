@@ -21,6 +21,8 @@ SRC_URI += "file://musl-arm-inb-outb.patch \
             file://0001-dri2-Sync-i965_pci_ids.h-from-Mesa.patch \
             file://0002-dri2-Sync-i965_pci_ids.h-from-Mesa.patch \
             file://0003-dri2-Sync-i965_pci_ids.h-from-Mesa.patch \
+            file://0001-config-wait-for-DRM-device-to-be-successful-initiate.patch \
+            file://0002-fbdevhw-add-loop-to-wait-dev-fb0-get-ready.patch \
             "
 SRC_URI[md5sum] = "015d2fc4b9f2bfe7a626edb63a62c65e"
 SRC_URI[sha256sum] = "677a8166e03474719238dfe396ce673c4234735464d6dadf2959b600d20e5a98"
