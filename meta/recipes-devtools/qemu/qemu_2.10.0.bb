@@ -44,6 +44,7 @@ SRC_URI = "http://wiki.qemu-project.org/download/${BP}.tar.bz2 \
            file://0004-i386-Add-FEAT_8000_0008_EBX-CPUID-feature-word.patch \
            file://0005-i386-Add-new-IBRS-versions-of-Intel-CPU-models.patch \
            file://0006-i386-Add-EPYC-IBPB-CPU-model.patch \
+           file://qemu-CVE-2018-7550.patch \
            "
 UPSTREAM_CHECK_REGEX = "qemu-(?P<pver>\d+\..*)\.tar"
 
