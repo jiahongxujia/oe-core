@@ -18,6 +18,7 @@ SRC_URI = "http://dev.gentoo.org/~blueness/${BPN}/${BP}.tar.gz \
            file://permissions.rules \
            file://run.rules \
            file://udev.rules \
+           file://0001-eudev-create-static-nodes-from-modules.patch \
 "
 UPSTREAM_CHECK_URI = "https://github.com/gentoo/eudev/releases"
 
