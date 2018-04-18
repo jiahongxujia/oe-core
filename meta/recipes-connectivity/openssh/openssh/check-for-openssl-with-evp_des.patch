@@ -1,0 +1,67 @@
+From aa943ac647e7c81345680e7050be83f0bc9deb55 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Tue, 17 Apr 2018 23:58:47 -0700
+Subject: [PATCH] configure.ac/cipher.c: Check for OpenSSL with EVP_des_ede3_cbc
+
+While compiling openssl with option `no-des', it caused the openssh
+build failure
+...
+cipher.c:85:41: error: 'EVP_des_ede3_cbc' undeclared here (not in a function);
+...
+
+Upstream-Status: Submitted [openssh-unix-dev@mindrot.org]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ cipher.c     |  2 ++
+ configure.ac | 20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
+
+diff --git a/cipher.c b/cipher.c
+index c3cd5dc..41dacfb 100644
+--- a/cipher.c
++++ b/cipher.c
+@@ -82,7 +82,9 @@ struct sshcipher {
+ 
+ static const struct sshcipher ciphers[] = {
+ #ifdef WITH_OPENSSL
++#ifdef OPENSSL_HAVE_DES
+ 	{ "3des-cbc",		8, 24, 0, 0, CFLAG_CBC, EVP_des_ede3_cbc },
++#endif
+ 	{ "aes128-cbc",		16, 16, 0, 0, CFLAG_CBC, EVP_aes_128_cbc },
+ 	{ "aes192-cbc",		16, 24, 0, 0, CFLAG_CBC, EVP_aes_192_cbc },
+ 	{ "aes256-cbc",		16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
+diff --git a/configure.ac b/configure.ac
+index 889f506..6c664ad 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2672,6 +2672,26 @@ if test "x$openssl" = "xyes" ; then
+ 		]
+ 	)
+ 
++	# Check for OpenSSL with EVP_des_ede3_cbc
++	AC_MSG_CHECKING([whether OpenSSL has DES support])
++	AC_LINK_IFELSE(
++		[AC_LANG_PROGRAM([[
++	#include <string.h>
++	#include <openssl/evp.h>
++	]], [[
++		exit(EVP_des_ede3_cbc() == NULL);
++	]])],
++	[
++		AC_MSG_RESULT([yes])
++		AC_DEFINE([OPENSSL_HAVE_DES], [1],
++		[libcrypto has DES support])
++	],
++	[
++		AC_MSG_RESULT([no])
++	]
++	)
++
++
+ 	# Check for OpenSSL with EVP_aes_*ctr
+ 	AC_MSG_CHECKING([whether OpenSSL has AES CTR via EVP])
+ 	AC_LINK_IFELSE(
+-- 
+2.7.4
+
