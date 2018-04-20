@@ -31,6 +31,8 @@ SRC_URI += "\
   file://support_SOURCE_DATE_EPOCH_in_py_compile_2.7.patch \
   file://0001-python-use-cc_basename-to-replace-CC-for-checking-co.patch \
   file://CVE-2017-1000158.patch \
+  file://0001-2.7-bpo-31530-Stop-crashes-when-iterating-over-a-fil.patch \
+  file://0001-bpo-31530-fix-crash-when-multiple-threads-iterate-ov.patch \
 "
 
 S = "${WORKDIR}/Python-${PV}"

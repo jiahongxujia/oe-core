@@ -18,6 +18,8 @@ SRC_URI += "\
             file://parallel-makeinst-create-bindir.patch \
             file://revert_use_of_sysconfigdata.patch \
             file://CVE-2017-1000158.patch \
+            file://0001-2.7-bpo-31530-Stop-crashes-when-iterating-over-a-fil.patch \
+            file://0001-bpo-31530-fix-crash-when-multiple-threads-iterate-ov.patch \
            "
 
 S = "${WORKDIR}/Python-${PV}"
