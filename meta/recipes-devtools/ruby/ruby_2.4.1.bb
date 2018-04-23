@@ -20,6 +20,10 @@ SRC_URI += " \
            file://0001-Add-test-case-for-bug-270072.patch \
            file://CVE-2018-1000079.patch \
            file://CVE-2018-1000079-2.patch \
+           file://CVE-2018-8778.patch \
+           file://CVE-2018-8779.patch \
+           file://CVE-2018-8779-2.patch \
+           file://CVE-2018-8780.patch \
            "
 
 SRC_URI[md5sum] = "782bca562e474dd25956dd0017d92677"
