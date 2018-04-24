@@ -492,11 +492,21 @@ python extend_recipe_sysroot() {
         if c.endswith("-native") or "-cross-" in c or "-crosssdk" in c:
             native = True
 
+        multilib = False
+        if setscenedeps[dep][2].startswith("virtual:multilib"):
+            variant = setscenedeps[dep][2].split(":")[2]
+            if variant not in fixme:
+                fixme[variant] = []
+            multilib = True
+
         if manifest:
             newmanifest = collections.OrderedDict()
             if native:
                 fm = fixme['native']
                 targetdir = recipesysrootnative
+            elif multilib:
+                fm = fixme[variant]
+                targetdir = destsysroot
             else:
                 fm = fixme['']
                 targetdir = destsysroot
