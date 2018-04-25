@@ -21,6 +21,10 @@ SRC_URI = "http://curl.haxx.se/download/curl-${PV}.tar.bz2 \
            file://CVE-2018-1000122.patch \
 "
 
+SRC_URI_append_class-target = " \
+           file://reproducible-mkhelp.patch \
+"
+
 # curl likes to set -g0 in CFLAGS, so we stop it
 # from mucking around with debug options
 #
@@ -36,6 +40,8 @@ PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'ipv6', d)} gnutls prox
 PACKAGECONFIG_class-native = "ipv6 proxy ssl threaded-resolver zlib"
 PACKAGECONFIG_class-nativesdk = "ipv6 proxy ssl threaded-resolver zlib"
 
+# 'ares' and 'threaded-resolver' are mutually exclusive
+PACKAGECONFIG[ares] = "--enable-ares,--disable-ares,c-ares"
 PACKAGECONFIG[dict] = "--enable-dict,--disable-dict,"
 PACKAGECONFIG[gnutls] = "--with-gnutls,--without-gnutls,gnutls"
 PACKAGECONFIG[gopher] = "--enable-gopher,--disable-gopher,"
@@ -83,7 +89,11 @@ do_install_append() {
 
 do_install_append_class-target() {
 	# cleanup buildpaths from curl-config
-	sed -i -e 's,${STAGING_DIR_HOST},,g' ${D}${bindir}/curl-config
+	sed -i \
+	    -e 's,--sysroot=${STAGING_DIR_TARGET},,g' \
+	    -e 's,--with-libtool-sysroot=${STAGING_DIR_TARGET},,g' \
+	    -e 's|${DEBUG_PREFIX_MAP}||g' \
+	    ${D}${bindir}/curl-config
 }
 
 PACKAGES =+ "lib${BPN}"
