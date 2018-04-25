@@ -4,6 +4,8 @@ LICENSE = "GPLv3"
 SRC_URI += "file://0001-Unset-need_charset_alias-when-building-for-musl.patch \
             file://CVE-2016-10713.patch \
             file://CVE-2018-6951.patch \
+            file://0001-Allow-input-files-to-be-missing-for-ed-style-patches.patch \
+            file://CVE-2018-1000156.patch \
 "
 
 SRC_URI[md5sum] = "ed4d5674ef4543b4eb463db168886dc7"
