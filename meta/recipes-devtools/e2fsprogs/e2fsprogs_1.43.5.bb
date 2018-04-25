@@ -112,4 +112,9 @@ do_install_ptest() {
 	sed -e 's!../e2fsck/e2fsck!e2fsck!g' \
 	    -e 's!../misc/tune2fs!tune2fs!g' -i ${D}${PTEST_PATH}/test/*/expect*
 	sed -e 's!../e2fsck/e2fsck!${base_sbindir}/e2fsck!g' -i ${D}${PTEST_PATH}/test/*/script
+
+	# Remove various files
+	find "${D}${PTEST_PATH}" -type f \
+	    \( -name 'Makefile' -o -name 'Makefile.in' -o -name '*.o' -o -name '*.c' -o -name '*.h' \)\
+	    -exec  rm -f {} +
 }
