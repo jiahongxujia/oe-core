@@ -14,6 +14,8 @@ SRC_URI = "${GNUPG_MIRROR}/${BPN}/${BPN}-${PV}.tar.bz2 \
            file://0002-use-pkgconfig-instead-of-npth-config.patch \
            file://0003-dirmngr-uses-libgpg-error.patch \
            file://0004-autogen.sh-fix-find-version-for-beta-checking.patch \
+           file://CVE-2018-9234.patch \
+           file://CVE-2018-9234-2.patch \
           "
 
 SRC_URI[md5sum] = "789f16949fae2d003d387f49e9da4b74"
