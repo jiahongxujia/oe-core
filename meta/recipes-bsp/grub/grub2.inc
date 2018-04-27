@@ -66,3 +66,5 @@ do_configure_prepend() {
 	( cd ${S}
 	${S}/autogen.sh )
 }
+
+RDEPENDS_${PN}_class-native = ""
