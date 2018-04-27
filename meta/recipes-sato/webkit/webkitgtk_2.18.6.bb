@@ -21,6 +21,7 @@ SRC_URI = "http://www.webkitgtk.org/releases/${BPN}-${PV}.tar.xz \
            file://0001-WebKitMacros-Append-to-I-and-not-to-isystem.patch \
            file://0001-Fix-build-with-musl.patch \
            file://fix-configure-failure-aarch64.patch \
+           file://0001-GStreamer-Builds-fails-with-ENABLE_VIDEO-OFF-due-to-.patch \
            "
 
 SRC_URI[md5sum] = "c1a548595135ee75ad3bf2e18ac83112"
@@ -63,6 +64,7 @@ EXTRA_OECMAKE = " \
 		${@bb.utils.contains('GTKDOC_ENABLED', 'True', '-DENABLE_GTKDOC=ON', '-DENABLE_GTKDOC=OFF', d)} \
 		-DENABLE_MINIBROWSER=ON \
                 -DPYTHON_EXECUTABLE=`which python` \
+                -DENABLE_VIDEO=OFF \
 		"
 
 # GL/GLES header clash: both define the same thing, differently, on 32 bit x86

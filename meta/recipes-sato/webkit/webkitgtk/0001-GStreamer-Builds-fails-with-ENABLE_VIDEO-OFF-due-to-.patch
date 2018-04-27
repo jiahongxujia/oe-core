@@ -1,0 +1,42 @@
+From f861744d90b86e849f7b45a2371a238d52287eda Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Thu, 26 Apr 2018 23:33:04 +0800
+Subject: [PATCH] [GStreamer] Builds fails with ENABLE_VIDEO=OFF due to
+ GStreamer usage https://bugs.webkit.org/show_bug.cgi?id=179373
+
+Reviewed by Xabier Rodriguez-Calvar.
+
+This allows to build with WebAudio enabled even if video support is
+disabled by guarding usage of HTMLMediaElement with ENABLE(VIDEO).
+
+No new tests needed.
+
+* page/DeprecatedGlobalSettings.cpp:
+(WebCore::DeprecatedGlobalSettings::setGStreamerEnabled): Guard usage of HTMLMediaElement.
+
+git-svn-id: http://svn.webkit.org/repository/webkit/trunk@225323 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+
+Upstream-Status: Backport
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ Source/WebCore/page/Settings.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Source/WebCore/page/Settings.cpp b/Source/WebCore/page/Settings.cpp
+index 668f2c1..7e6f83f 100644
+--- a/Source/WebCore/page/Settings.cpp
++++ b/Source/WebCore/page/Settings.cpp
+@@ -594,7 +594,10 @@ void Settings::setGStreamerEnabled(bool enabled)
+         return;
+ 
+     gGStreamerEnabled = enabled;
++
++#if ENABLE(VIDEO)
+     HTMLMediaElement::resetMediaEngines();
++#endif
+ }
+ #endif
+ 
+-- 
+2.7.4
+
