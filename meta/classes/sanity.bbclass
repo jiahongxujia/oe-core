@@ -343,6 +343,14 @@ def get_filesystem_id(path):
         bb.warn("Can't get the filesystem id of: %s" % path)
         return None
 
+# Check that the path isn't located on xfs
+# If enabled IMA signing.
+def check_not_xfs(path, name):
+    # The xfs' filesystem id is 58465342
+    if get_filesystem_id(path) == "58465342" and bb.utils.contains('DISTRO_FEATURES', 'ima', 'Y', '', d) == "Y":
+        return "The %s: %s can't be located on xfs if IMA supported.\n" % (name, path)
+    return ""
+
 # Check that the path isn't located on nfs.
 def check_not_nfs(path, name):
     # The nfs' filesystem id is 6969
@@ -679,6 +687,9 @@ def check_sanity_version_change(status, d):
 
     # Check that TMPDIR isn't located on nfs
     status.addresult(check_not_nfs(tmpdir, "TMPDIR"))
+
+    # Check the TMPDIR isn't located on xfs if IMA enabled
+    status.addresult(check_not_xfs(tmpdir, "TMPDIR"))
 
     # Check for case-insensitive file systems (such as Linux in Docker on
     # macOS with default HFS+ file system)
