@@ -22,6 +22,9 @@ SRC_URI = "http://www.openssl.org/source/openssl-${PV}.tar.gz \
            file://CVE-2018-0739-v1.1.0h.patch \
            file://CVE-2018-0733-v1.1.0h.patch \
            file://0001-aes-asm-aes-armv4-bsaes-armv7-.pl-make-it-work-with-.patch \
+           file://CVE-2018-0737-1.patch \
+           file://CVE-2018-0737-2.patch \
+           file://CVE-2018-0737-3.patch \
           "
 
 SRC_URI_append_class-nativesdk = " \

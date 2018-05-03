@@ -42,6 +42,9 @@ SRC_URI += "file://find.pl;subdir=openssl-${PV}/util/ \
            file://Use-SHA256-not-MD5-as-default-digest.patch \
            file://0001-Fix-build-with-clang-using-external-assembler.patch \
            file://0001-openssl-force-soft-link-to-avoid-rare-race.patch \
+           file://CVE-2018-0737-1.patch \
+           file://CVE-2018-0737-2.patch \
+           file://CVE-2018-0737-3.patch \
            "
 
 SRC_URI_append_class-nativesdk = " \
