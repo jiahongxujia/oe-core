@@ -9,4 +9,5 @@ SRC_URI = "${SOURCEFORGE_MIRROR}/psmisc/psmisc-${PV}.tar.gz \
            file://0001-Typo-in-fuser-makes-M-on-all-the-time.patch \
            file://0002-Include-limits.h-for-PATH_MAX.patch \
            file://0001-Use-UINTPTR_MAX-instead-of-__WORDSIZE.patch \
+           file://0003-Full-thread-display-for-pstree-an-option.patch \
            "
