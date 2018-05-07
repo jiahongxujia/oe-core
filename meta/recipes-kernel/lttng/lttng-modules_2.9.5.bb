@@ -10,9 +10,11 @@ inherit module
 
 COMPATIBLE_HOST = '(x86_64|i.86|powerpc|aarch64|mips|nios2|arm).*-linux'
 
+
 SRC_URI = "https://lttng.org/files/${BPN}/${BPN}-${PV}.tar.bz2 \
            file://Makefile-Do-not-fail-if-CONFIG_TRACEPOINTS-is-not-en.patch \
            file://BUILD_RUNTIME_BUG_ON-vs-gcc7.patch \
+           file://0001-Update-kvm-instrumentation-for-4.15.patch \
 "
 
 SRC_URI[md5sum] = "af97aaaf86133fd783bb9937dc3b4d59"
