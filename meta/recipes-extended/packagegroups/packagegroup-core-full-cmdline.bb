@@ -129,6 +129,7 @@ RDEPENDS_packagegroup-core-full-cmdline-initscripts = "\
 RDEPENDS_packagegroup-core-full-cmdline-multiuser = "\
     cracklib \
     gzip \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'pam', 'libuser', '', d)} \
     shadow \
     sudo \
     "
