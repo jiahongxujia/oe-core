@@ -67,6 +67,10 @@ SRC_URI += " \
         file://perl-test-customized.patch \
         file://perl-fix-CVE-2017-12883.patch \
         file://perl-fix-CVE-2017-12837.patch \
+        file://CVE-2018-6797.patch \
+        file://CVE-2018-6798.patch \
+        file://CVE-2018-6798-2.patch \
+        file://CVE-2018-6913.patch \
 "
 
 # Fix test case issues
