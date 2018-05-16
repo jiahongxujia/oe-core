@@ -12,6 +12,8 @@ class GalculatorTest(OESDKTestCase):
         if not (self.tc.hasPrefixedTargetPackage("gtk\+3") or
                 self.tc.hasPrefixedTargetPackage("libgtk-3.0")):
             raise unittest.SkipTest("GalculatorTest class: SDK doesn't support gtk+3")
+        if not (self.tc.hasPrefixedTargetPackage("gettext")):
+            raise unittest.SkipTest("GalculatorTest class: SDK doesn't contain gettext")
 
     def test_galculator(self):
         dl_dir = self.td.get('DL_DIR', None)
