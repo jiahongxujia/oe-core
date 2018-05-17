@@ -12,6 +12,7 @@ PV = "1.1.0+git${SRCPV}"
 SRC_URI = "git://git.kernel.dk/blktrace.git \
            file://ldflags.patch \
            file://0001-include-sys-types.h-for-dev_t-definition.patch \
+           file://CVE-2018-10689.patch \
 "
 
 S = "${WORKDIR}/git"
