@@ -6,7 +6,7 @@ DEPENDS = "popt glib-2.0"
 
 RPROVIDES_${PN} += "initd-functions"
 RDEPENDS_${PN} += "util-linux"
-RCONFLICTS_${PN} = "initscripts-functions"
+RCONFLICTS_${PN} = "initscripts-functions lib32-initscripts-functions"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=ebf4e8b49780ab187d51bd26aaa022c6"
 
