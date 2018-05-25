@@ -28,7 +28,7 @@ def get_waf_parallel_make(d):
 python waf_preconfigure() {
     from distutils.version import StrictVersion
     srcsubdir = d.getVar('S')
-    wafbin = os.path.join(srcsubdir + '/buildtools/bin/', 'waf')
+    wafbin = os.path.join(srcsubdir, 'waf')
     status, result = oe.utils.getstatusoutput(wafbin + " --version")
     if status != 0:
         bb.warn("Unable to execute waf --version, exit code %d. Assuming waf version without bindir/libdir support." % status)
