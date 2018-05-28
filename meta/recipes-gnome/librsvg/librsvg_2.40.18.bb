@@ -12,7 +12,11 @@ BBCLASSEXTEND = "native"
 
 inherit autotools pkgconfig gnomebase gtk-doc pixbufcache upstream-version-is-even gobject-introspection
 
-SRC_URI += "file://gtk-option.patch"
+SRC_URI += "file://gtk-option.patch \
+            file://0001-rsvg_handle_resolve_uri-Make-public.patch \
+            file://0001-rsvg-io-Don-t-resolve-relative-filenames-here-do-it-.patch \
+            file://CVE-2018-1000041.patch \
+"
 
 SRC_URI[archive.md5sum] = "eaa5c8a8bbe2600ab5194c0d3b1b621b"
 SRC_URI[archive.sha256sum] = "bfc8c488c89c1e7212c478beb95c41b44701636125a3e6dab41187f1485b564c"
