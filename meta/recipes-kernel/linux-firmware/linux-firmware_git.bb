@@ -229,6 +229,7 @@ PACKAGES =+ "${PN}-ralink-license ${PN}-ralink \
              ${PN}-ti-connectivity-license ${PN}-wl12xx ${PN}-wl18xx \
              ${PN}-vt6656-license ${PN}-vt6656 \
              ${PN}-rtl-license ${PN}-rtl8188 ${PN}-rtl8192cu ${PN}-rtl8192ce ${PN}-rtl8192su ${PN}-rtl8723 ${PN}-rtl8821 \
+             ${PN}-rtl8168 \
              ${PN}-broadcom-license \
              ${PN}-bcm4329 ${PN}-bcm4330 ${PN}-bcm4334 ${PN}-bcm43340 \
              ${PN}-bcm43362 ${PN}-bcm4339 ${PN}-bcm43430 ${PN}-bcm4354 \
@@ -434,6 +435,7 @@ LICENSE_${PN}-rtl8192su = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl8723 = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl8821 = "Firmware-rtlwifi_firmware"
 LICENSE_${PN}-rtl-license = "Firmware-rtlwifi_firmware"
+LICENSE_${PN}-rtl8168 = "WHENCE"
 
 LICENSE_${PN}-usb8897 = "Firmware-Marvell"
 FILES_${PN}-usb8897 = " \
@@ -463,6 +465,9 @@ FILES_${PN}-rtl8723 = " \
 FILES_${PN}-rtl8821 = " \
   ${nonarch_base_libdir}/firmware/rtlwifi/rtl8821*.bin \
 "
+FILES_${PN}-rtl8168 = " \
+  ${nonarch_base_libdir}/firmware/rtl_nic/rtl8168*.fw \
+"
 
 RDEPENDS_${PN}-rtl8188 += "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8192ce += "${PN}-rtl-license"
@@ -470,6 +475,7 @@ RDEPENDS_${PN}-rtl8192cu += "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8192su = "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8723 += "${PN}-rtl-license"
 RDEPENDS_${PN}-rtl8821 += "${PN}-rtl-license"
+RDEPENDS_${PN}-rtl8168 += "${PN}-whence-license"
 
 # For ti-connectivity
 LICENSE_${PN}-wl12xx = "Firmware-ti-connectivity"
