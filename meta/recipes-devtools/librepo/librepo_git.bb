@@ -8,6 +8,7 @@ SRC_URI = "git://github.com/rpm-software-management/librepo.git \
            file://0003-tests-fix-a-race-when-deleting-temporary-directories.patch \
            file://0004-Set-gpgme-variables-with-pkg-config-not-with-cmake-m.patch \
            file://0005-Fix-typo-correct-LRO_SSLVERIFYHOST-with-CURLOPT_SSL_.patch \
+           file://0001-decrypt-password.patch \
            "
 
 PV = "1.7.20+git${SRCPV}"
@@ -16,6 +17,7 @@ SRCREV = "e1137cbbda78fecb192146300790680a5bc811b1"
 S = "${WORKDIR}/git"
 
 DEPENDS = "curl expat glib-2.0 openssl attr libcheck gpgme"
+RDEPENDS_${PN} += "openssl"
 
 inherit cmake distutils3-base pkgconfig
 
